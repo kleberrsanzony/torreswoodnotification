@@ -1,65 +1,139 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
+import { SendHorizontal, Loader2 } from "lucide-react";
 
 export default function Home() {
+  const [product, setProduct] = useState("");
+  const [length, setLength] = useState("");
+  const [quantity, setQuantity] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const formattedMessage = `${quantity || "[qnt]"} ${product || "[produto]"} de ${length || "[medida]"} metros — vendido`;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!product || !length || !quantity) {
+      toast.error("Por favor, preencha todos os campos.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    const finalMessage = `${quantity} ${product} de ${length} metros — vendido`;
+
+    try {
+      // 1. Insert into Supabase
+      const { error: dbError } = await supabase.from("sales").insert({
+        product,
+        length_meters: parseFloat(length),
+        quantity: parseInt(quantity, 10),
+        message: finalMessage,
+        status: "novo",
+      });
+
+      if (dbError) throw dbError;
+
+      // 2. Trigger Push Notification to Estoque
+      const res = await fetch("/api/notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: "Nova Venda Registrada",
+          body: finalMessage,
+        }),
+      });
+
+      if (!res.ok) {
+        console.warn("Falha ao enviar notificação push, mas a venda foi registrada.");
+      }
+
+      toast.success("Venda enviada para o estoque com sucesso!");
+      
+      // Reset form
+      setProduct("");
+      setLength("");
+      setQuantity("");
+    } catch (error: any) {
+      console.error(error);
+      toast.error("Erro ao registrar venda: " + (error.message || "Erro desconhecido"));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight">Nova Venda</h2>
+        <p className="text-muted-foreground">Registre os itens vendidos abaixo.</p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <div className="flex flex-col gap-2">
+          <label htmlFor="product" className="text-sm font-medium">Produto</label>
+          <input
+            id="product"
+            type="text"
+            placeholder="Ex: caibros, vigas..."
+            className="flex h-12 w-full rounded-xl border border-input bg-card px-4 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            value={product}
+            onChange={(e) => setProduct(e.target.value)}
+            disabled={isSubmitting}
+            required
+          />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex flex-col gap-2">
+            <label htmlFor="length" className="text-sm font-medium">Medida (metros)</label>
+            <input
+              id="length"
+              type="number"
+              step="0.01"
+              placeholder="Ex: 3"
+              className="flex h-12 w-full rounded-xl border border-input bg-card px-4 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              value={length}
+              onChange={(e) => setLength(e.target.value)}
+              disabled={isSubmitting}
+              required
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label htmlFor="quantity" className="text-sm font-medium">Quantidade</label>
+            <input
+              id="quantity"
+              type="number"
+              placeholder="Ex: 4"
+              className="flex h-12 w-full rounded-xl border border-input bg-card px-4 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+              disabled={isSubmitting}
+              required
+            />
+          </div>
         </div>
-      </main>
+
+        <div className="mt-2 rounded-xl bg-muted p-4 border border-border">
+          <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider font-semibold">Resumo da mensagem</p>
+          <p className="font-medium text-foreground">{formattedMessage}</p>
+        </div>
+
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="mt-4 inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-14 w-full shadow-md active:scale-[0.98]"
+        >
+          {isSubmitting ? (
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+          ) : (
+            <SendHorizontal className="mr-2 h-5 w-5" />
+          )}
+          {isSubmitting ? "Enviando..." : "Enviar Venda"}
+        </button>
+      </form>
     </div>
   );
 }
