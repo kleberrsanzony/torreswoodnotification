@@ -9,12 +9,12 @@ export default function Home() {
   const [product, setProduct] = useState("");
   const [length, setLength] = useState("");
   const [quantity, setQuantity] = useState("");
-  
+
   // New Fields
   const [vendedor, setVendedor] = useState("");
   const [cliente, setCliente] = useState("");
   const [nota, setNota] = useState("");
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isVendedorOpen, setIsVendedorOpen] = useState(false);
 
@@ -66,7 +66,7 @@ export default function Home() {
       }
 
       toast.success("Venda enviada para o estoque com sucesso!");
-      
+
       // Reset form (keeping vendedor as it usually remains the same for the session)
       setProduct("");
       setLength("");
@@ -89,7 +89,7 @@ export default function Home() {
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-        
+
         {/* NEW FIELDS ROW */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-b border-border pb-5 mb-1">
           <div className="flex flex-col gap-2">
@@ -102,10 +102,10 @@ export default function Home() {
                 disabled={isSubmitting}
                 className={`flex h-12 w-full items-center justify-between rounded-xl border border-slate-200 bg-white/50 backdrop-blur-sm px-4 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 ${!vendedor ? 'text-slate-500' : 'text-slate-900'}`}
               >
-                {vendedor || "Selecione um vendedor"}
+                {vendedor || "Selecione Vendedor"}
                 <ChevronDown className={`w-4 h-4 opacity-50 transition-transform ${isVendedorOpen ? 'rotate-180' : ''}`} />
               </button>
-              
+
               {isVendedorOpen && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setIsVendedorOpen(false)}></div>
@@ -119,11 +119,10 @@ export default function Home() {
                             setVendedor(v);
                             setIsVendedorOpen(false);
                           }}
-                          className={`w-full flex items-center justify-between px-3 py-2.5 text-sm rounded-lg transition-colors ${
-                            vendedor === v 
-                              ? 'bg-primary/10 text-primary font-medium' 
+                          className={`w-full flex items-center justify-between px-3 py-2.5 text-sm rounded-lg transition-colors ${vendedor === v
+                              ? 'bg-primary/10 text-primary font-medium'
                               : 'text-foreground hover:bg-muted'
-                          }`}
+                            }`}
                         >
                           {v}
                           {vendedor === v && <Check className="w-4 h-4" />}
