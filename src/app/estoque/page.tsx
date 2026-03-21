@@ -432,7 +432,7 @@ export default function Estoque() {
           >
             <span>{statusTab.label}</span>
             {statusTab.value === "novo" && novosCount > 0 && (
-              <span className="absolute -top-2 -right-2 flex items-center justify-center bg-destructive text-destructive-foreground text-[11px] font-bold min-w-[22px] h-[22px] px-1 rounded-full shadow-sm z-10 animate-in zoom-in">
+              <span className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 flex items-center justify-center bg-red-600 text-white text-[11px] font-bold min-w-[20px] h-[20px] rounded-full shadow-md z-30 animate-in zoom-in">
                 {novosCount > 99 ? '99+' : novosCount}
               </span>
             )}
