@@ -26,9 +26,10 @@ export default function Estoque() {
   const [filter, setFilter] = useState<"novo" | "visualizado" | "separando" | "separado" | "entregue_ou_retirado" | "todos">("novo");
   const [searchQuery, setSearchQuery] = useState("");
   
-  // Edit forms
+  // Edit and Delete forms
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editMessage, setEditMessage] = useState("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -156,16 +157,20 @@ export default function Estoque() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm("Atenção!\n\nTem certeza que deseja excluir esta venda permanentemente?\nEsta ação não poderá ser desfeita.")) {
-      const { error } = await supabase.from('sales').delete().eq('id', id);
-      if (error) {
-        toast.error("Erro ao excluir venda.");
-        console.error(error);
-      } else {
-        toast.success("Venda excluída com sucesso!");
-      }
+  const handleDelete = (id: string) => {
+    setDeletingId(id);
+  };
+
+  const confirmDelete = async () => {
+    if (!deletingId) return;
+    const { error } = await supabase.from('sales').delete().eq('id', deletingId);
+    if (error) {
+      toast.error("Erro ao excluir venda.");
+      console.error(error);
+    } else {
+      toast.success("Venda excluída com sucesso!");
     }
+    setDeletingId(null);
   };
 
   const startEditing = (sale: Sale) => {
@@ -426,6 +431,36 @@ export default function Estoque() {
           ))
         )}
       </div>
+
+      {deletingId && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-card w-full max-w-sm rounded-[1.25rem] shadow-xl border border-border overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">
+                <Trash2 className="w-6 h-6 text-destructive" />
+                Excluir Venda
+              </h3>
+              <p className="text-[15px] text-muted-foreground leading-relaxed">
+                Tem certeza que deseja apagar este bilhete de venda do sistema permanentemente? Esta ação **não** poderá ser desfeita.
+              </p>
+            </div>
+            <div className="bg-muted p-4 flex items-center justify-end gap-3">
+              <button 
+                onClick={() => setDeletingId(null)}
+                className="px-5 py-2.5 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={confirmDelete}
+                className="px-5 py-2.5 text-sm font-semibold bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-xl shadow-sm transition-all hover:scale-105 active:scale-95"
+              >
+                Sim, Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
