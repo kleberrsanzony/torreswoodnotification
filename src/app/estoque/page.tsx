@@ -6,7 +6,7 @@ import { requestForToken, onMessageListener } from "@/lib/firebase";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
-import { BellRing, Check, Bell, VolumeX, Volume2, Search, ArrowRight, ShieldCheck, X, Pencil, Trash2, FileDown } from "lucide-react";
+import { BellRing, Check, Bell, VolumeX, Volume2, Search, ArrowRight, ShieldCheck, X, Pencil, Trash2, FileDown, CheckSquare } from "lucide-react";
 import { generateDailyReport } from "@/lib/pdfReport";
 
 type Sale = {
@@ -34,6 +34,9 @@ export default function Estoque() {
   const [isExporting, setIsExporting] = useState(false);
   const [isExportingYesterday, setIsExportingYesterday] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -240,6 +243,43 @@ export default function Estoque() {
     }
   };
 
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === paginatedSales.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(paginatedSales.map(s => s.id)));
+    }
+  };
+
+  const exitSelectMode = () => {
+    setSelectMode(false);
+    setSelectedIds(new Set());
+  };
+
+  const handleBulkDelete = async () => {
+    setIsBulkDeleting(false); // close modal
+    const ids = Array.from(selectedIds);
+    let failed = 0;
+    for (const id of ids) {
+      const { error } = await supabase.from('sales').delete().eq('id', id);
+      if (error) failed++;
+    }
+    if (failed > 0) {
+      toast.error(`${failed} item(s) não puderam ser excluídos.`);
+    } else {
+      toast.success(`${ids.length} venda(s) excluída(s) com sucesso!`);
+    }
+    exitSelectMode();
+  };
+
   const startEditing = (sale: Sale) => {
     setEditingId(sale.id);
     setEditMessage(sale.message);
@@ -325,6 +365,18 @@ export default function Estoque() {
             >
               <FileDown className="h-4 w-4" />
               {isExportingYesterday ? 'Gerando...' : 'PDF Ontem'}
+            </button>
+            <button
+              onClick={() => selectMode ? exitSelectMode() : setSelectMode(true)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition-colors ${
+                selectMode
+                  ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
+                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
+              }`}
+              title={selectMode ? 'Cancelar seleção' : 'Selecionar itens'}
+            >
+              <CheckSquare className="h-4 w-4" />
+              {selectMode ? 'Cancelar' : 'Selecionar'}
             </button>
             <button
               onClick={() => setSoundEnabled(!soundEnabled)}
@@ -436,16 +488,56 @@ export default function Estoque() {
             <p className="text-muted-foreground font-medium">Nenhum pedido encontrado</p>
           </div>
         ) : (
-          paginatedSales.map((sale) => (
-            <div 
-              key={sale.id} 
-              className={`p-4 rounded-xl border transition-all ${
-                sale.status === 'novo' ? 'bg-card border-primary/20 shadow-sm border-l-4 border-l-primary' : 
-                sale.status === 'visualizado' ? 'bg-amber-500/5 border-amber-500/20 border-l-4 border-l-amber-500' : 
-                sale.status === 'separando' ? 'bg-blue-500/5 border-blue-500/20 border-l-4 border-l-blue-500' : 
-                sale.status === 'separado' ? 'bg-emerald-500/5 border-emerald-500/20 border-l-4 border-l-emerald-500' : 
+          <>
+            {/* Select-all bar */}
+            {selectMode && (
+              <div className="flex items-center justify-between px-4 py-2.5 bg-muted rounded-xl border border-border">
+                <label className="flex items-center gap-2 text-sm font-medium cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.size === paginatedSales.length && paginatedSales.length > 0}
+                    onChange={toggleSelectAll}
+                    className="w-4 h-4 accent-primary cursor-pointer"
+                  />
+                  Selecionar todos ({paginatedSales.length})
+                </label>
+                {selectedIds.size > 0 && (
+                  <button
+                    onClick={() => setIsBulkDeleting(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-destructive text-destructive-foreground text-xs font-semibold shadow-sm hover:bg-destructive/90 transition-colors"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Excluir {selectedIds.size} selecionado(s)
+                  </button>
+                )}
+              </div>
+            )}
+
+            {paginatedSales.map((sale) => (
+            <div key={sale.id} className="relative">
+              {/* Checkbox overlay (only in selectMode) */}
+              {selectMode && (
+                <button
+                  onClick={() => toggleSelect(sale.id)}
+                  className={`absolute left-3 top-3 z-10 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                    selectedIds.has(sale.id)
+                      ? 'bg-primary border-primary'
+                      : 'bg-card border-slate-300 hover:border-primary'
+                  }`}
+                >
+                  {selectedIds.has(sale.id) && <Check className="w-3 h-3 text-primary-foreground" />}
+                </button>
+              )}
+              <div
+              className={`p-4 rounded-xl border transition-all ${selectMode ? 'pl-10 cursor-pointer' : ''} ${
+                selectedIds.has(sale.id) ? 'ring-2 ring-primary' :
+                sale.status === 'novo' ? 'bg-card border-primary/20 shadow-sm border-l-4 border-l-primary' :
+                sale.status === 'visualizado' ? 'bg-amber-500/5 border-amber-500/20 border-l-4 border-l-amber-500' :
+                sale.status === 'separando' ? 'bg-blue-500/5 border-blue-500/20 border-l-4 border-l-blue-500' :
+                sale.status === 'separado' ? 'bg-emerald-500/5 border-emerald-500/20 border-l-4 border-l-emerald-500' :
                 'bg-muted/30 border-dashed border-border opacity-75'
               }`}
+              onClick={() => selectMode && toggleSelect(sale.id)}
             >
               <div className="flex items-start justify-between gap-4 mb-2">
                 {editingId === sale.id ? (
@@ -544,7 +636,9 @@ export default function Estoque() {
                 )}
               </div>
             </div>
-          ))
+            </div>
+            ))}
+          </>
         )}
       </div>
 
@@ -599,6 +693,37 @@ export default function Estoque() {
                 className="px-5 py-2.5 text-sm font-semibold bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-xl shadow-sm transition-all hover:scale-105 active:scale-95"
               >
                 Sim, Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Delete Confirmation Modal */}
+      {isBulkDeleting && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-card w-full max-w-sm rounded-[1.25rem] shadow-xl border border-border overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">
+                <Trash2 className="w-6 h-6 text-destructive" />
+                Excluir {selectedIds.size} Venda(s)
+              </h3>
+              <p className="text-[15px] text-muted-foreground leading-relaxed">
+                Você está prestes a excluir <strong>{selectedIds.size} venda(s)</strong> permanentemente. Esta ação não poderá ser desfeita.
+              </p>
+            </div>
+            <div className="bg-muted p-4 flex items-center justify-end gap-3">
+              <button
+                onClick={() => setIsBulkDeleting(false)}
+                className="px-5 py-2.5 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleBulkDelete}
+                className="px-5 py-2.5 text-sm font-semibold bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-xl shadow-sm transition-all hover:scale-105 active:scale-95"
+              >
+                Sim, Excluir Todos
               </button>
             </div>
           </div>
