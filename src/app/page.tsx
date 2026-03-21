@@ -22,7 +22,7 @@ export default function Home() {
 
   // Formatar cabeçalho opcional
   const headerParts = [];
-  if (vendedor) headerParts.push(`Vendedor: ${vendedor}`);
+  if (vendedor) headerParts.push(`Vendedor: ${vendedor} | TORRES`);
   if (cliente) headerParts.push(`Cliente: ${cliente}`);
   if (nota) headerParts.push(`Nota: ${nota}`);
   const headerText = headerParts.length > 0 ? headerParts.join(" | ") : "";
