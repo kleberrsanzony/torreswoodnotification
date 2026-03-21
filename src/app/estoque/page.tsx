@@ -6,7 +6,7 @@ import { requestForToken, onMessageListener } from "@/lib/firebase";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
-import { BellRing, Check, Bell, VolumeX, Volume2, Search, ArrowRight, ShieldCheck, X } from "lucide-react";
+import { BellRing, Check, Bell, VolumeX, Volume2, Search, ArrowRight, ShieldCheck, X, Pencil, Trash2 } from "lucide-react";
 
 type Sale = {
   id: string;
@@ -25,6 +25,11 @@ export default function Estoque() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [filter, setFilter] = useState<"novo" | "visualizado" | "separando" | "separado" | "entregue_ou_retirado" | "todos">("novo");
   const [searchQuery, setSearchQuery] = useState("");
+  
+  // Edit forms
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editMessage, setEditMessage] = useState("");
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -109,23 +114,77 @@ export default function Estoque() {
   const handleRegisterDevice = async () => {
     setIsRegistering(true);
     try {
-      const token = await requestForToken();
-      if (token) {
-        // Save token to DB
-        const { error } = await supabase.from("device_tokens").upsert(
-          { fcm_token: token, role: "estoque", active: true },
-          { onConflict: 'fcm_token' }
-        );
-        if (error) throw error;
-        toast.success("Dispositivo ativado para receber notificações!");
-      } else {
-        toast.warning("Não foi possível obter a permissão para notificações.");
-      }
+      const ensureServiceWorkerAndToken = async () => {
+        const token = await requestForToken();
+        if (token) {
+          const { error } = await supabase.from("device_tokens").upsert(
+            { fcm_token: token, role: "estoque", active: true },
+            { onConflict: 'fcm_token' }
+          );
+          if (error) throw error;
+          toast.success("Dispositivo ativado para receber notificações!");
+        } else {
+          toast.warning("Não foi possível obter o token de notificação.");
+        }
+      };
+
+      const requestPermission = async () => {
+        try {
+          if (!('Notification' in window)) {
+            toast.error("Seu navegador não suporta notificações.");
+            return;
+          }
+          
+          const permission = await Notification.requestPermission();
+          if (permission === 'granted') {
+            toast.success("Permissão concedida! Registrando dispositivo...");
+            await ensureServiceWorkerAndToken();
+          } else {
+            toast.error("Permissão de notificação negada.");
+          }
+        } catch (error) {
+          console.error(error);
+          toast.error("Erro ao solicitar permissão.");
+        }
+      };
+      await requestPermission();
     } catch (e) {
       console.error(e);
       toast.error("Erro ao registrar dispositivo.");
     } finally {
       setIsRegistering(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm("Atenção!\n\nTem certeza que deseja excluir esta venda permanentemente?\nEsta ação não poderá ser desfeita.")) {
+      const { error } = await supabase.from('sales').delete().eq('id', id);
+      if (error) {
+        toast.error("Erro ao excluir venda.");
+        console.error(error);
+      } else {
+        toast.success("Venda excluída com sucesso!");
+      }
+    }
+  };
+
+  const startEditing = (sale: Sale) => {
+    setEditingId(sale.id);
+    setEditMessage(sale.message);
+  };
+
+  const handleEditSave = async (id: string) => {
+    if (!editMessage.trim()) {
+      toast.error("A mensagem não pode estar vazia.");
+      return;
+    }
+    const { error } = await supabase.from('sales').update({ message: editMessage }).eq('id', id);
+    if (error) {
+      toast.error("Erro ao salvar alterações.");
+      console.error(error);
+    } else {
+      toast.success("Informações da venda atualizadas!");
+      setEditingId(null);
     }
   };
 
@@ -268,20 +327,48 @@ export default function Estoque() {
               }`}
             >
               <div className="flex items-start justify-between gap-4 mb-2">
-                <p className="font-semibold text-[15px] leading-relaxed text-foreground whitespace-pre-line">
-                  {sale.message}
-                </p>
+                {editingId === sale.id ? (
+                  <div className="w-full mr-2 flex flex-col gap-2">
+                    <textarea 
+                      value={editMessage}
+                      onChange={(e) => setEditMessage(e.target.value)}
+                      className="w-full p-3 border border-input rounded-xl text-sm min-h-[110px] bg-background focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+                    />
+                    <div className="flex gap-2 mt-1">
+                      <button onClick={() => handleEditSave(sale.id)} className="text-xs bg-primary text-primary-foreground px-4 py-2 rounded-lg font-semibold shadow-sm hover:bg-primary/90 flex-1">Salvar Alterações</button>
+                      <button onClick={() => setEditingId(null)} className="text-xs bg-muted text-muted-foreground px-4 py-2 rounded-lg font-semibold border border-border hover:bg-muted/80 flex-1">Cancelar</button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="font-semibold text-[15px] leading-relaxed text-foreground whitespace-pre-line flex-1">
+                    {sale.message}
+                  </p>
+                )}
+                
                 <div className="flex flex-col items-end gap-1 shrink-0">
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
-                    sale.status === 'novo' ? 'bg-primary/10 text-primary' :
-                    sale.status === 'visualizado' ? 'bg-amber-500/10 text-amber-500' :
-                    sale.status === 'separando' ? 'bg-blue-500/10 text-blue-500' :
-                    sale.status === 'separado' ? 'bg-emerald-500/10 text-emerald-500' :
-                    'bg-slate-500/10 text-slate-500'
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider ${
+                    sale.status === 'novo' ? 'bg-primary/10 text-primary border border-primary/20' : 
+                    sale.status === 'visualizado' ? 'bg-amber-500/10 text-amber-600 border border-amber-500/20' : 
+                    sale.status === 'separando' ? 'bg-blue-500/10 text-blue-600 border border-blue-500/20' : 
+                    sale.status === 'separado' ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' : 
+                    'bg-muted text-muted-foreground border border-border'
                   }`}>
                     {sale.status === 'entregue_ou_retirado' ? 'ENTREGUE/RETIR.' : sale.status}
                   </span>
-                  <span className="text-[11px] font-medium text-muted-foreground whitespace-nowrap">
+                  
+                  <div className="flex items-center gap-1 mt-1 justify-end">
+                    {editingId !== sale.id && (
+                      <>
+                        <button onClick={() => startEditing(sale)} className="text-muted-foreground hover:text-blue-500 transition-colors p-1.5 rounded-md hover:bg-muted" title="Editar Venda">
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button onClick={() => handleDelete(sale.id)} className="text-muted-foreground hover:text-red-500 transition-colors p-1.5 rounded-md hover:bg-muted" title="Excluir Venda Permanentemente">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                  <span className="text-[11px] font-medium text-muted-foreground whitespace-nowrap mt-0.5">
                     {format(new Date(sale.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
                   </span>
                 </div>
