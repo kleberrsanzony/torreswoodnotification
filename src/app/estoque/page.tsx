@@ -6,7 +6,8 @@ import { requestForToken, onMessageListener } from "@/lib/firebase";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
-import { BellRing, Check, Bell, VolumeX, Volume2, Search, ArrowRight, ShieldCheck, X, Pencil, Trash2 } from "lucide-react";
+import { BellRing, Check, Bell, VolumeX, Volume2, Search, ArrowRight, ShieldCheck, X, Pencil, Trash2, FileDown } from "lucide-react";
+import { generateDailyReport } from "@/lib/pdfReport";
 
 type Sale = {
   id: string;
@@ -30,6 +31,7 @@ export default function Estoque() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editMessage, setEditMessage] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -78,7 +80,7 @@ export default function Estoque() {
               prev.map((s) => (s.id === updatedSale.id ? updatedSale : s))
             );
           } else if (payload.eventType === "DELETE") {
-            setSales((prev) => prev.filter((s) => s.id !== payload.old.id));
+            setSales((prev) => prev.filter((sale) => sale.id !== payload.old.id));
           }
         }
       )
@@ -173,6 +175,37 @@ export default function Estoque() {
     setDeletingId(null);
   };
 
+  const handleExportPDF = async () => {
+    setIsExporting(true);
+    try {
+      const today = new Date();
+      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+      const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59).toISOString();
+
+      const { data, error } = await supabase
+        .from('sales')
+        .select('*')
+        .gte('created_at', startOfDay)
+        .lte('created_at', endOfDay)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        toast.warning('Nenhuma venda registrada hoje para exportar.');
+        return;
+      }
+
+      generateDailyReport(data, today);
+      toast.success(`PDF gerado com ${data.length} venda(s)!`);
+    } catch (e) {
+      console.error(e);
+      toast.error('Erro ao gerar o relatório PDF.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const startEditing = (sale: Sale) => {
     setEditingId(sale.id);
     setEditMessage(sale.message);
@@ -237,6 +270,15 @@ export default function Estoque() {
           <h2 className="text-2xl font-bold tracking-tight">Estoque</h2>
           
           <div className="flex items-center gap-2">
+            <button
+              onClick={handleExportPDF}
+              disabled={isExporting}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold shadow-sm hover:bg-primary/90 disabled:opacity-50 transition-colors"
+              title="Exportar relatório diário em PDF"
+            >
+              <FileDown className="h-4 w-4" />
+              {isExporting ? 'Gerando...' : 'PDF Hoje'}
+            </button>
             <button
               onClick={() => setSoundEnabled(!soundEnabled)}
               className={`p-2 rounded-full transition-colors ${soundEnabled ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}
