@@ -16,6 +16,7 @@ ALTER TABLE public.sales ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow all select sales" ON public.sales FOR SELECT USING (true);
 CREATE POLICY "Allow all insert sales" ON public.sales FOR INSERT WITH CHECK (true);
 CREATE POLICY "Allow all update sales" ON public.sales FOR UPDATE USING (true);
+CREATE POLICY "Allow all delete sales" ON public.sales FOR DELETE USING (true);
 
 -- 2. Create table 'device_tokens' for push notifications
 CREATE TABLE IF NOT EXISTS public.device_tokens (
