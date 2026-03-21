@@ -32,6 +32,7 @@ export default function Estoque() {
   const [editMessage, setEditMessage] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -249,6 +250,10 @@ export default function Estoque() {
     return matchesFilter && matchesSearch;
   });
 
+  const PAGE_SIZE = 12;
+  const totalPages = Math.ceil(filteredSales.length / PAGE_SIZE);
+  const paginatedSales = filteredSales.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
   const novosCount = sales.filter(s => s.status === "novo").length;
 
   const STATUSES = [
@@ -312,7 +317,7 @@ export default function Estoque() {
         {STATUSES.map((statusTab) => (
           <button
             key={statusTab.value}
-            onClick={() => setFilter(statusTab.value as any)}
+            onClick={() => { setFilter(statusTab.value as any); setCurrentPage(1); }}
             className={`relative flex-1 min-w-max flex items-center justify-center h-[42px] px-3 text-[13px] sm:text-sm font-semibold rounded-xl transition-all border ${
               filter === statusTab.value
                 ? "bg-card shadow-sm border-border text-foreground ring-1 ring-border"
@@ -336,7 +341,7 @@ export default function Estoque() {
           type="text"
           placeholder="Buscar por vendedor, cliente, nota, produto ou data (ex: 21/03)..."
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
           className="w-full h-11 pl-10 pr-10 rounded-xl border border-input bg-card text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
         />
         {searchQuery && (
@@ -362,7 +367,7 @@ export default function Estoque() {
             <p className="text-muted-foreground font-medium">Nenhum pedido encontrado</p>
           </div>
         ) : (
-          filteredSales.map((sale) => (
+          paginatedSales.map((sale) => (
             <div 
               key={sale.id} 
               className={`p-4 rounded-xl border transition-all ${
@@ -473,6 +478,33 @@ export default function Estoque() {
           ))
         )}
       </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between pt-2">
+          <button
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-xl border border-input bg-card hover:bg-muted transition-colors disabled:opacity-40 disabled:pointer-events-none shadow-sm"
+          >
+            <ArrowRight className="w-4 h-4 rotate-180" />
+            Anterior
+          </button>
+
+          <span className="text-sm text-muted-foreground font-medium">
+            Página <span className="text-foreground font-bold">{currentPage}</span> de <span className="text-foreground font-bold">{totalPages}</span>
+          </span>
+
+          <button
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-xl border border-input bg-card hover:bg-muted transition-colors disabled:opacity-40 disabled:pointer-events-none shadow-sm"
+          >
+            Próxima
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {deletingId && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
