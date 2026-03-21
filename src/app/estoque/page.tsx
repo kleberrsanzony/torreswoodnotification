@@ -27,7 +27,7 @@ export default function Estoque() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [filter, setFilter] = useState<"novo" | "visualizado" | "separando" | "separado" | "entregue_ou_retirado" | "todos">("novo");
   const [searchQuery, setSearchQuery] = useState("");
-  
+
   // Edit and Delete forms
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editMessage, setEditMessage] = useState("");
@@ -54,7 +54,7 @@ export default function Estoque() {
         .select("*")
         .order("created_at", { ascending: false })
         .limit(50);
-      
+
       if (error) {
         toast.error("Erro ao carregar vendas");
         console.error(error);
@@ -80,7 +80,7 @@ export default function Estoque() {
           if (payload.eventType === "INSERT") {
             const newSale = payload.new as Sale;
             setSales((prev) => [newSale, ...prev]);
-            
+
             if (soundEnabled && audioRef.current) {
               audioRef.current.play().catch(e => console.log('Audio play blocked:', e));
             }
@@ -116,7 +116,7 @@ export default function Estoque() {
       .from("sales")
       .update({ status })
       .eq("id", id);
-      
+
     if (error) {
       toast.error("Erro ao atualizar status");
     } else {
@@ -147,7 +147,7 @@ export default function Estoque() {
             toast.error("Seu navegador não suporta notificações.");
             return;
           }
-          
+
           const permission = await Notification.requestPermission();
           if (permission === 'granted') {
             toast.success("Permissão concedida! Registrando dispositivo...");
@@ -307,7 +307,7 @@ export default function Estoque() {
 
   const handleTestNotification = async () => {
     try {
-       await fetch("/api/notify", {
+      await fetch("/api/notify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -354,7 +354,7 @@ export default function Estoque() {
           <h2 className="text-2xl font-bold tracking-tight">Estoque</h2>
           <button
             onClick={() => setSoundEnabled(!soundEnabled)}
-            className={`p-2 rounded-full transition-all hover:bg-muted/80 active:scale-90 ${mounted && soundEnabled ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}
+            className={`p-2 rounded-full transition-all duration-300 hover:scale-110 hover:bg-muted/80 active:scale-90 ${mounted && soundEnabled ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}
             title={mounted && soundEnabled ? "Som ativado" : "Som desativado"}
           >
             {!mounted ? (
@@ -372,7 +372,7 @@ export default function Estoque() {
           <button
             onClick={handleExportPDF}
             disabled={isExporting}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-semibold shadow-sm hover:bg-primary/90 active:scale-95 disabled:opacity-50 transition-all whitespace-nowrap"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-semibold shadow-sm hover:bg-primary/90 hover:scale-[1.03] hover:shadow-md hover:-translate-y-0.5 active:scale-95 disabled:opacity-50 transition-all duration-300 whitespace-nowrap"
             title="Exportar relatório de hoje em PDF"
           >
             <FileDown className="h-4 w-4 shrink-0" />
@@ -381,7 +381,7 @@ export default function Estoque() {
           <button
             onClick={handleExportYesterdayPDF}
             disabled={isExportingYesterday}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-secondary text-secondary-foreground text-xs font-semibold shadow-sm hover:bg-secondary/80 active:scale-95 disabled:opacity-50 transition-all whitespace-nowrap"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-secondary text-secondary-foreground text-xs font-semibold shadow-sm hover:bg-secondary/80 hover:scale-[1.03] hover:shadow-md hover:-translate-y-0.5 active:scale-95 disabled:opacity-50 transition-all duration-300 whitespace-nowrap"
             title="Exportar relatório de ontem em PDF"
           >
             <FileDown className="h-4 w-4 shrink-0" />
@@ -389,7 +389,7 @@ export default function Estoque() {
           </button>
           <button
             onClick={() => selectMode ? exitSelectMode() : setSelectMode(true)}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold shadow-sm transition-all whitespace-nowrap active:scale-95 ${
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold shadow-sm transition-all duration-300 whitespace-nowrap hover:scale-[1.03] hover:shadow-md hover:-translate-y-0.5 active:scale-95 ${
               selectMode
                 ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
                 : 'bg-muted text-muted-foreground hover:bg-muted/80'
@@ -400,23 +400,23 @@ export default function Estoque() {
             {selectMode ? 'Cancelar' : 'Selecionar'}
           </button>
         </div>
-        
+
         <div className="grid grid-cols-2 gap-2">
-           <button
-             onClick={handleRegisterDevice}
-             disabled={isRegistering}
-             className="flex items-center justify-center gap-2 h-10 w-full rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 active:scale-95 text-sm font-medium transition-all"
-           >
-             <BellRing className="w-4 h-4" />
-             {isRegistering ? "Ativando..." : "Receber Notificações"}
-           </button>
-           <button
-             onClick={handleTestNotification}
-             className="flex items-center justify-center gap-2 h-10 w-full rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 active:scale-95 text-sm font-medium transition-all"
-           >
-             <Bell className="w-4 h-4" />
-             Testar Notificação
-           </button>
+          <button
+            onClick={handleRegisterDevice}
+            disabled={isRegistering}
+            className="flex items-center justify-center gap-2 h-10 w-full rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:scale-[1.02] hover:shadow-md active:scale-95 text-sm font-medium transition-all duration-300"
+          >
+            <BellRing className="w-4 h-4" />
+            {isRegistering ? "Ativando..." : "Receber Notificações"}
+          </button>
+          <button
+            onClick={handleTestNotification}
+            className="flex items-center justify-center gap-2 h-10 w-full rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:scale-[1.02] hover:shadow-md active:scale-95 text-sm font-medium transition-all duration-300"
+          >
+            <Bell className="w-4 h-4" />
+            Testar Notificação
+          </button>
         </div>
       </div>
 
@@ -425,11 +425,10 @@ export default function Estoque() {
           <button
             key={statusTab.value}
             onClick={() => { setFilter(statusTab.value as any); setCurrentPage(1); }}
-            className={`relative flex-1 min-w-max flex items-center justify-center h-[42px] px-3 text-[13px] sm:text-sm font-semibold rounded-xl transition-all border active:scale-95 ${
-              filter === statusTab.value
+            className={`relative flex-1 min-w-max flex items-center justify-center h-[42px] px-3 text-[13px] sm:text-sm font-semibold rounded-xl transition-all duration-300 border hover:scale-[1.03] hover:shadow-md active:scale-95 ${filter === statusTab.value
                 ? "bg-card shadow-sm border-border text-foreground ring-1 ring-border"
                 : "bg-muted/50 border-transparent text-muted-foreground hover:bg-muted hover:border-border/50"
-            }`}
+              }`}
           >
             <span>{statusTab.label}</span>
             {statusTab.value === "novo" && novosCount > 0 && (
@@ -444,7 +443,7 @@ export default function Estoque() {
       {/* Search Bar */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <input 
+        <input
           type="text"
           placeholder="Buscar por vendedor, cliente, nota, produto ou data (ex: 21/03)..."
           value={searchQuery}
@@ -452,7 +451,7 @@ export default function Estoque() {
           className="w-full h-11 pl-10 pr-10 rounded-xl border border-input bg-card text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
         />
         {searchQuery && (
-          <button 
+          <button
             onClick={() => setSearchQuery("")}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
           >
@@ -527,130 +526,127 @@ export default function Estoque() {
             )}
 
             {paginatedSales.map((sale) => (
-            <div key={sale.id} className="relative">
-              {/* Checkbox overlay (only in selectMode) */}
-              {selectMode && (
-                <button
-                  onClick={() => toggleSelect(sale.id)}
-                  className={`absolute left-3 top-3 z-10 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-                    selectedIds.has(sale.id)
-                      ? 'bg-primary border-primary'
-                      : 'bg-card border-slate-300 hover:border-primary'
-                  }`}
+              <div key={sale.id} className="relative">
+                {/* Checkbox overlay (only in selectMode) */}
+                {selectMode && (
+                  <button
+                    onClick={() => toggleSelect(sale.id)}
+                    className={`absolute left-3 top-3 z-10 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${selectedIds.has(sale.id)
+                        ? 'bg-primary border-primary'
+                        : 'bg-card border-slate-300 hover:border-primary'
+                      }`}
+                  >
+                    {selectedIds.has(sale.id) && <Check className="w-3 h-3 text-primary-foreground" />}
+                  </button>
+                )}
+                <div
+                  className={`p-4 rounded-xl border transition-all ${selectMode ? 'pl-10 cursor-pointer' : ''} ${selectedIds.has(sale.id) ? 'ring-2 ring-primary' :
+                      sale.status === 'novo' ? 'bg-card border-primary/20 shadow-sm border-l-4 border-l-primary' :
+                        sale.status === 'visualizado' ? 'bg-amber-500/5 border-amber-500/20 border-l-4 border-l-amber-500' :
+                          sale.status === 'separando' ? 'bg-blue-500/5 border-blue-500/20 border-l-4 border-l-blue-500' :
+                            sale.status === 'separado' ? 'bg-emerald-500/5 border-emerald-500/20 border-l-4 border-l-emerald-500' :
+                              'bg-muted/30 border-dashed border-border opacity-75'
+                    }`}
+                  onClick={() => selectMode && toggleSelect(sale.id)}
                 >
-                  {selectedIds.has(sale.id) && <Check className="w-3 h-3 text-primary-foreground" />}
-                </button>
-              )}
-              <div
-              className={`p-4 rounded-xl border transition-all ${selectMode ? 'pl-10 cursor-pointer' : ''} ${
-                selectedIds.has(sale.id) ? 'ring-2 ring-primary' :
-                sale.status === 'novo' ? 'bg-card border-primary/20 shadow-sm border-l-4 border-l-primary' :
-                sale.status === 'visualizado' ? 'bg-amber-500/5 border-amber-500/20 border-l-4 border-l-amber-500' :
-                sale.status === 'separando' ? 'bg-blue-500/5 border-blue-500/20 border-l-4 border-l-blue-500' :
-                sale.status === 'separado' ? 'bg-emerald-500/5 border-emerald-500/20 border-l-4 border-l-emerald-500' :
-                'bg-muted/30 border-dashed border-border opacity-75'
-              }`}
-              onClick={() => selectMode && toggleSelect(sale.id)}
-            >
-              <div className="flex items-start justify-between gap-4 mb-2">
-                {editingId === sale.id ? (
-                  <div className="w-full mr-2 flex flex-col gap-2">
-                    <textarea 
-                      value={editMessage}
-                      onChange={(e) => setEditMessage(e.target.value)}
-                      className="w-full p-3 border border-input rounded-xl text-sm min-h-[110px] bg-background focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
-                    />
-                    <div className="flex gap-2 mt-1">
-                      <button onClick={() => handleEditSave(sale.id)} className="text-xs bg-primary text-primary-foreground px-4 py-2 rounded-lg font-semibold shadow-sm hover:bg-primary/90 flex-1">Salvar Alterações</button>
-                      <button onClick={() => setEditingId(null)} className="text-xs bg-muted text-muted-foreground px-4 py-2 rounded-lg font-semibold border border-border hover:bg-muted/80 flex-1">Cancelar</button>
+                  <div className="flex items-start justify-between gap-4 mb-2">
+                    {editingId === sale.id ? (
+                      <div className="w-full mr-2 flex flex-col gap-2">
+                        <textarea
+                          value={editMessage}
+                          onChange={(e) => setEditMessage(e.target.value)}
+                          className="w-full p-3 border border-input rounded-xl text-sm min-h-[110px] bg-background focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+                        />
+                        <div className="flex gap-2 mt-1">
+                          <button onClick={() => handleEditSave(sale.id)} className="text-xs bg-primary text-primary-foreground px-4 py-2 rounded-lg font-semibold shadow-sm hover:bg-primary/90 flex-1">Salvar Alterações</button>
+                          <button onClick={() => setEditingId(null)} className="text-xs bg-muted text-muted-foreground px-4 py-2 rounded-lg font-semibold border border-border hover:bg-muted/80 flex-1">Cancelar</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="font-semibold text-[15px] leading-relaxed text-foreground whitespace-pre-line flex-1">
+                        {sale.message}
+                      </p>
+                    )}
+
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider ${sale.status === 'novo' ? 'bg-primary/10 text-primary border border-primary/20' :
+                          sale.status === 'visualizado' ? 'bg-amber-500/10 text-amber-600 border border-amber-500/20' :
+                            sale.status === 'separando' ? 'bg-blue-500/10 text-blue-600 border border-blue-500/20' :
+                              sale.status === 'separado' ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' :
+                                'bg-muted text-muted-foreground border border-border'
+                        }`}>
+                        {sale.status === 'entregue_ou_retirado' ? 'ENTREGUE/RETIR.' : sale.status}
+                      </span>
+
+                      <div className="flex items-center gap-1 mt-1 justify-end">
+                        {editingId !== sale.id && (
+                          <>
+                            <button onClick={() => startEditing(sale)} className="text-muted-foreground hover:text-blue-500 transition-all duration-300 p-1.5 rounded-md hover:bg-muted hover:scale-110 active:scale-90" title="Editar Venda">
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                            <button onClick={() => handleDelete(sale.id)} className="text-muted-foreground hover:text-red-500 transition-all duration-300 p-1.5 rounded-md hover:bg-muted hover:scale-110 active:scale-90" title="Excluir Venda Permanentemente">
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                      <span className="text-[11px] font-medium text-muted-foreground whitespace-nowrap mt-0.5">
+                        {format(new Date(sale.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                      </span>
                     </div>
                   </div>
-                ) : (
-                  <p className="font-semibold text-[15px] leading-relaxed text-foreground whitespace-pre-line flex-1">
-                    {sale.message}
-                  </p>
-                )}
-                
-                <div className="flex flex-col items-end gap-1 shrink-0">
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider ${
-                    sale.status === 'novo' ? 'bg-primary/10 text-primary border border-primary/20' : 
-                    sale.status === 'visualizado' ? 'bg-amber-500/10 text-amber-600 border border-amber-500/20' : 
-                    sale.status === 'separando' ? 'bg-blue-500/10 text-blue-600 border border-blue-500/20' : 
-                    sale.status === 'separado' ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' : 
-                    'bg-muted text-muted-foreground border border-border'
-                  }`}>
-                    {sale.status === 'entregue_ou_retirado' ? 'ENTREGUE/RETIR.' : sale.status}
-                  </span>
-                  
-                  <div className="flex items-center gap-1 mt-1 justify-end">
-                    {editingId !== sale.id && (
-                      <>
-                        <button onClick={() => startEditing(sale)} className="text-muted-foreground hover:text-blue-500 transition-all p-1.5 rounded-md hover:bg-muted active:scale-90" title="Editar Venda">
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button onClick={() => handleDelete(sale.id)} className="text-muted-foreground hover:text-red-500 transition-all p-1.5 rounded-md hover:bg-muted active:scale-90" title="Excluir Venda Permanentemente">
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </>
+
+                  <div className="flex flex-wrap items-center gap-2 mt-4">
+                    {sale.status === 'novo' && (
+                      <button
+                        onClick={() => handleUpdateStatus(sale.id, 'visualizado')}
+                        className="flex-1 min-w-[120px] flex items-center justify-center gap-2 bg-amber-500/10 text-amber-600 dark:text-amber-500 h-10 rounded-lg text-sm font-semibold transition-all duration-300 hover:bg-amber-500/20 hover:scale-[1.02] hover:shadow-sm active:scale-[0.98]"
+                      >
+                        Visualizado
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    )}
+
+                    {sale.status === 'visualizado' && (
+                      <button
+                        onClick={() => handleUpdateStatus(sale.id, 'separando')}
+                        className="flex-1 min-w-[120px] flex items-center justify-center gap-2 bg-blue-500/10 text-blue-600 dark:text-blue-500 h-10 rounded-lg text-sm font-semibold transition-all duration-300 hover:bg-blue-500/20 hover:scale-[1.02] hover:shadow-sm active:scale-[0.98]"
+                      >
+                        Separando
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    )}
+
+                    {sale.status === 'separando' && (
+                      <button
+                        onClick={() => handleUpdateStatus(sale.id, 'separado')}
+                        className="flex-1 min-w-[120px] flex items-center justify-center gap-2 bg-emerald-500 text-white h-10 rounded-lg text-sm font-semibold transition-all duration-300 hover:bg-emerald-600 hover:scale-[1.02] hover:shadow-md active:scale-[0.98]"
+                      >
+                        Separado
+                        <ShieldCheck className="w-4 h-4" />
+                      </button>
+                    )}
+
+                    {sale.status === 'separado' && (
+                      <button
+                        onClick={() => handleUpdateStatus(sale.id, 'entregue_ou_retirado')}
+                        className="flex-1 min-w-[120px] flex items-center justify-center gap-2 bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800 h-10 rounded-lg text-sm font-semibold transition-all duration-300 hover:opacity-90 hover:scale-[1.02] hover:shadow-md active:scale-[0.98]"
+                      >
+                        Entregue / Retirado
+                        <Check className="w-4 h-4" />
+                      </button>
+                    )}
+
+                    {sale.status === 'entregue_ou_retirado' && (
+                      <div className="flex-1 flex items-center justify-center gap-2 bg-muted text-muted-foreground h-10 rounded-lg text-sm font-semibold pointer-events-none">
+                        <Check className="w-4 h-4" />
+                        Pedido Finalizado
+                      </div>
                     )}
                   </div>
-                  <span className="text-[11px] font-medium text-muted-foreground whitespace-nowrap mt-0.5">
-                    {format(new Date(sale.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-                  </span>
                 </div>
               </div>
-
-              <div className="flex flex-wrap items-center gap-2 mt-4">
-                {sale.status === 'novo' && (
-                  <button
-                    onClick={() => handleUpdateStatus(sale.id, 'visualizado')}
-                    className="flex-1 min-w-[120px] flex items-center justify-center gap-2 bg-amber-500/10 text-amber-600 dark:text-amber-500 h-10 rounded-lg text-sm font-semibold transition-all hover:bg-amber-500/20 active:scale-[0.98]"
-                  >
-                    Visualizado
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                )}
-                
-                {sale.status === 'visualizado' && (
-                  <button
-                    onClick={() => handleUpdateStatus(sale.id, 'separando')}
-                    className="flex-1 min-w-[120px] flex items-center justify-center gap-2 bg-blue-500/10 text-blue-600 dark:text-blue-500 h-10 rounded-lg text-sm font-semibold transition-all hover:bg-blue-500/20 active:scale-[0.98]"
-                  >
-                    Separando
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                )}
-
-                {sale.status === 'separando' && (
-                  <button
-                    onClick={() => handleUpdateStatus(sale.id, 'separado')}
-                    className="flex-1 min-w-[120px] flex items-center justify-center gap-2 bg-emerald-500 text-white h-10 rounded-lg text-sm font-semibold transition-all hover:bg-emerald-600 active:scale-[0.98]"
-                  >
-                    Separado
-                    <ShieldCheck className="w-4 h-4" />
-                  </button>
-                )}
-
-                {sale.status === 'separado' && (
-                  <button
-                    onClick={() => handleUpdateStatus(sale.id, 'entregue_ou_retirado')}
-                    className="flex-1 min-w-[120px] flex items-center justify-center gap-2 bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800 h-10 rounded-lg text-sm font-semibold transition-all hover:opacity-90 active:scale-[0.98]"
-                  >
-                    Entregue / Retirado
-                    <Check className="w-4 h-4" />
-                  </button>
-                )}
-
-                {sale.status === 'entregue_ou_retirado' && (
-                  <div className="flex-1 flex items-center justify-center gap-2 bg-muted text-muted-foreground h-10 rounded-lg text-sm font-semibold pointer-events-none">
-                    <Check className="w-4 h-4" />
-                    Pedido Finalizado
-                  </div>
-                )}
-              </div>
-            </div>
-            </div>
-          ))}
+            ))}
           </>
         )}
       </div>
@@ -661,7 +657,7 @@ export default function Estoque() {
           <button
             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
             disabled={currentPage === 1}
-            className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-xl border border-input bg-card hover:bg-muted transition-colors disabled:opacity-40 disabled:pointer-events-none shadow-sm"
+            className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-xl border border-input bg-card hover:bg-muted hover:scale-[1.05] hover:shadow-md active:scale-95 transition-all duration-300 disabled:opacity-40 disabled:pointer-events-none shadow-sm"
           >
             <ArrowRight className="w-4 h-4 rotate-180" />
             Anterior
@@ -674,7 +670,7 @@ export default function Estoque() {
           <button
             onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
-            className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-xl border border-input bg-card hover:bg-muted transition-all active:scale-95 disabled:opacity-40 disabled:pointer-events-none shadow-sm"
+            className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-xl border border-input bg-card hover:bg-muted hover:scale-[1.05] hover:shadow-md active:scale-95 transition-all duration-300 disabled:opacity-40 disabled:pointer-events-none shadow-sm"
           >
             Próxima
             <ArrowRight className="w-4 h-4" />
@@ -695,13 +691,13 @@ export default function Estoque() {
               </p>
             </div>
             <div className="bg-muted p-4 flex items-center justify-end gap-3">
-              <button 
+              <button
                 onClick={() => setDeletingId(null)}
                 className="px-5 py-2.5 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
               >
                 Cancelar
               </button>
-              <button 
+              <button
                 onClick={confirmDelete}
                 className="px-5 py-2.5 text-sm font-semibold bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-xl shadow-sm transition-all hover:scale-105 active:scale-95"
               >

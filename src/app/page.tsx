@@ -100,7 +100,7 @@ export default function Home() {
                 type="button"
                 onClick={() => setIsVendedorOpen(!isVendedorOpen)}
                 disabled={isSubmitting}
-                className={`flex h-12 w-full items-center justify-between rounded-xl border border-slate-200 bg-white/50 backdrop-blur-sm px-4 py-2 text-sm shadow-sm transition-all hover:bg-slate-50 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 ${!vendedor ? 'text-slate-500' : 'text-slate-900'}`}
+                className={`flex h-12 w-full items-center justify-between rounded-xl border border-slate-200 bg-white/50 backdrop-blur-sm px-4 py-2 text-sm shadow-sm transition-all duration-300 hover:bg-slate-50 hover:scale-[1.01] hover:shadow-md active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 ${!vendedor ? 'text-slate-500' : 'text-slate-900'}`}
               >
                 {vendedor || "Selecione Vendedor"}
                 <ChevronDown className={`w-4 h-4 opacity-50 transition-transform ${isVendedorOpen ? 'rotate-180' : ''}`} />
@@ -119,9 +119,9 @@ export default function Home() {
                             setVendedor(v);
                             setIsVendedorOpen(false);
                           }}
-                          className={`w-full flex items-center justify-between px-3 py-2.5 text-sm rounded-lg transition-colors ${vendedor === v
-                              ? 'bg-primary/10 text-primary font-medium'
-                              : 'text-foreground hover:bg-muted'
+                          className={`w-full flex items-center justify-between px-3 py-2.5 text-sm rounded-lg transition-all duration-200 ${vendedor === v
+                            ? 'bg-primary/10 text-primary font-medium'
+                            : 'text-foreground hover:bg-muted hover:scale-[1.02] hover:pl-4'
                             }`}
                         >
                           {v}
@@ -213,7 +213,7 @@ export default function Home() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="mt-4 inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-14 w-full shadow-md active:scale-[0.98]"
+          className="mt-4 inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-[1.02] hover:shadow-lg hover:-translate-y-0.5 h-14 w-full shadow-md active:scale-[0.98]"
         >
           {isSubmitting ? (
             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
