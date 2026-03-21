@@ -100,7 +100,7 @@ export default function Home() {
                 type="button"
                 onClick={() => setIsVendedorOpen(!isVendedorOpen)}
                 disabled={isSubmitting}
-                className={`flex h-12 w-full items-center justify-between rounded-xl border border-input bg-card px-4 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 ${!vendedor ? 'text-muted-foreground' : 'text-foreground'}`}
+                className={`flex h-12 w-full items-center justify-between rounded-xl border border-slate-200 bg-white/50 backdrop-blur-sm px-4 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 ${!vendedor ? 'text-slate-500' : 'text-slate-900'}`}
               >
                 {vendedor || "Selecione um vendedor"}
                 <ChevronDown className={`w-4 h-4 opacity-50 transition-transform ${isVendedorOpen ? 'rotate-180' : ''}`} />
@@ -109,7 +109,7 @@ export default function Home() {
               {isVendedorOpen && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setIsVendedorOpen(false)}></div>
-                  <div className="absolute z-[60] top-[calc(100%+8px)] left-0 w-full bg-card border border-border rounded-xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2">
+                  <div className="absolute z-[60] top-[calc(100%+8px)] left-0 w-full bg-white/85 backdrop-blur-3xl border border-slate-200 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.15)] overflow-hidden animate-in fade-in slide-in-from-top-2">
                     <div className="max-h-[200px] overflow-y-auto p-1.5 flex flex-col gap-1">
                       {vendedores.map((v) => (
                         <button
