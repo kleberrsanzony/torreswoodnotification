@@ -195,18 +195,18 @@ export default function Estoque() {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+      <div className="flex flex-wrap gap-2">
         {STATUSES.map((statusTab) => (
           <button
             key={statusTab.value}
             onClick={() => setFilter(statusTab.value as any)}
-            className={`relative flex items-center justify-center h-[42px] text-[13px] sm:text-sm font-semibold rounded-xl transition-all border ${
+            className={`relative flex-1 min-w-max flex items-center justify-center h-[42px] px-3 text-[13px] sm:text-sm font-semibold rounded-xl transition-all border ${
               filter === statusTab.value
                 ? "bg-card shadow-sm border-border text-foreground ring-1 ring-border"
                 : "bg-muted/50 border-transparent text-muted-foreground hover:bg-muted"
             }`}
           >
-            <span className="truncate px-1">{statusTab.label}</span>
+            <span>{statusTab.label}</span>
             {statusTab.value === "novo" && novosCount > 0 && (
               <span className="absolute -top-2 -right-2 flex items-center justify-center bg-destructive text-destructive-foreground text-[11px] font-bold min-w-[22px] h-[22px] px-1 rounded-full shadow-sm z-10 animate-in zoom-in">
                 {novosCount > 99 ? '99+' : novosCount}
