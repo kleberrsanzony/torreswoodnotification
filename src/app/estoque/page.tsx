@@ -344,48 +344,50 @@ export default function Estoque() {
       <audio ref={audioRef} src="/notification.wav" preload="auto" />
 
       <div className="flex flex-col gap-4">
+        {/* Row 1: Title + Sound Toggle */}
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold tracking-tight">Estoque</h2>
-          
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleExportPDF}
-              disabled={isExporting}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold shadow-sm hover:bg-primary/90 disabled:opacity-50 transition-colors"
-              title="Exportar relatório de hoje em PDF"
-            >
-              <FileDown className="h-4 w-4" />
-              {isExporting ? 'Gerando...' : 'PDF Hoje'}
-            </button>
-            <button
-              onClick={handleExportYesterdayPDF}
-              disabled={isExportingYesterday}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary text-secondary-foreground text-xs font-semibold shadow-sm hover:bg-secondary/80 disabled:opacity-50 transition-colors"
-              title="Exportar relatório de ontem em PDF"
-            >
-              <FileDown className="h-4 w-4" />
-              {isExportingYesterday ? 'Gerando...' : 'PDF Ontem'}
-            </button>
-            <button
-              onClick={() => selectMode ? exitSelectMode() : setSelectMode(true)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition-colors ${
-                selectMode
-                  ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
-                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
-              }`}
-              title={selectMode ? 'Cancelar seleção' : 'Selecionar itens'}
-            >
-              <CheckSquare className="h-4 w-4" />
-              {selectMode ? 'Cancelar' : 'Selecionar'}
-            </button>
-            <button
-              onClick={() => setSoundEnabled(!soundEnabled)}
-              className={`p-2 rounded-full transition-colors ${soundEnabled ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}
-              title={soundEnabled ? "Som ativado" : "Som desativado"}
-            >
-              {soundEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
-            </button>
-          </div>
+          <button
+            onClick={() => setSoundEnabled(!soundEnabled)}
+            className={`p-2 rounded-full transition-colors ${soundEnabled ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}
+            title={soundEnabled ? "Som ativado" : "Som desativado"}
+          >
+            {soundEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
+          </button>
+        </div>
+
+        {/* Row 2: Action Buttons */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={handleExportPDF}
+            disabled={isExporting}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-semibold shadow-sm hover:bg-primary/90 disabled:opacity-50 transition-colors whitespace-nowrap"
+            title="Exportar relatório de hoje em PDF"
+          >
+            <FileDown className="h-4 w-4 shrink-0" />
+            {isExporting ? 'Gerando...' : 'PDF Hoje'}
+          </button>
+          <button
+            onClick={handleExportYesterdayPDF}
+            disabled={isExportingYesterday}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-secondary text-secondary-foreground text-xs font-semibold shadow-sm hover:bg-secondary/80 disabled:opacity-50 transition-colors whitespace-nowrap"
+            title="Exportar relatório de ontem em PDF"
+          >
+            <FileDown className="h-4 w-4 shrink-0" />
+            {isExportingYesterday ? 'Gerando...' : 'PDF Ontem'}
+          </button>
+          <button
+            onClick={() => selectMode ? exitSelectMode() : setSelectMode(true)}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold shadow-sm transition-colors whitespace-nowrap ${
+              selectMode
+                ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
+                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+            }`}
+            title={selectMode ? 'Cancelar seleção' : 'Selecionar itens'}
+          >
+            <CheckSquare className="h-4 w-4 shrink-0" />
+            {selectMode ? 'Cancelar' : 'Selecionar'}
+          </button>
         </div>
         
         <div className="grid grid-cols-2 gap-2">
