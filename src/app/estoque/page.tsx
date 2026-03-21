@@ -147,7 +147,8 @@ export default function Estoque() {
 
   const filteredSales = sales.filter(s => {
     const matchesFilter = filter === "todos" || s.status === filter;
-    const matchesSearch = s.message.toLowerCase().includes(searchQuery.toLowerCase());
+    const dateStr = format(new Date(s.created_at), "dd/MM/yyyy");
+    const matchesSearch = s.message.toLowerCase().includes(searchQuery.toLowerCase()) || dateStr.includes(searchQuery);
     return matchesFilter && matchesSearch;
   });
 
@@ -227,7 +228,7 @@ export default function Estoque() {
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <input 
           type="text"
-          placeholder="Buscar por vendedor, cliente, nota, produto..."
+          placeholder="Buscar por vendedor, cliente, nota, produto ou data (ex: 21/03)..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full h-11 pl-10 pr-10 rounded-xl border border-input bg-card text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
@@ -280,8 +281,8 @@ export default function Estoque() {
                   }`}>
                     {sale.status === 'entregue_ou_retirado' ? 'ENTREGUE/RETIR.' : sale.status}
                   </span>
-                  <span className="text-[11px] font-medium text-muted-foreground">
-                    {format(new Date(sale.created_at), "HH:mm", { locale: ptBR })}
+                  <span className="text-[11px] font-medium text-muted-foreground whitespace-nowrap">
+                    {format(new Date(sale.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
                   </span>
                 </div>
               </div>
