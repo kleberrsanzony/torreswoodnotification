@@ -29,7 +29,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className={`${inter.className} min-h-screen flex flex-col`}>
-        <header className="bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-md border-b sticky top-0 z-50 shadow-sm">
+        <header className="sticky top-0 z-50 shadow-sm border-b" style={{ backgroundColor: 'rgb(248 250 252 / 0.95)', backdropFilter: 'blur(12px)' }}>
           <div className="max-w-md mx-auto px-4 h-16 flex items-center justify-between">
             <h1 className="font-bold text-lg tracking-tight flex items-center gap-2">
               <Hammer className="w-5 h-5 text-primary" />
@@ -46,11 +46,11 @@ export default function RootLayout({
             </nav>
           </div>
         </header>
-        
+
         <main className="flex-1 max-w-md w-full mx-auto p-4 flex flex-col">
           {children}
         </main>
-        
+
         <Toaster position="top-center" richColors />
       </body>
     </html>
