@@ -195,23 +195,25 @@ export default function Estoque() {
         </div>
       </div>
 
-      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
-        <div className="flex items-center bg-muted p-1 rounded-xl w-max">
-          {STATUSES.map((statusTab) => (
-            <button
-              key={statusTab.value}
-              onClick={() => setFilter(statusTab.value as any)}
-              className={`flex items-center justify-center px-4 h-10 text-sm font-medium rounded-lg transition-all ${filter === statusTab.value ? "bg-card shadow text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-            >
-              {statusTab.label}
-              {statusTab.value === "novo" && novosCount > 0 && (
-                <span className="ml-2 inline-flex items-center justify-center bg-destructive text-destructive-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
-                  {novosCount}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
+      <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+        {STATUSES.map((statusTab) => (
+          <button
+            key={statusTab.value}
+            onClick={() => setFilter(statusTab.value as any)}
+            className={`relative flex items-center justify-center h-[42px] text-[13px] sm:text-sm font-semibold rounded-xl transition-all border ${
+              filter === statusTab.value
+                ? "bg-card shadow-sm border-border text-foreground ring-1 ring-border"
+                : "bg-muted/50 border-transparent text-muted-foreground hover:bg-muted"
+            }`}
+          >
+            <span className="truncate px-1">{statusTab.label}</span>
+            {statusTab.value === "novo" && novosCount > 0 && (
+              <span className="absolute -top-2 -right-2 flex items-center justify-center bg-destructive text-destructive-foreground text-[11px] font-bold min-w-[22px] h-[22px] px-1 rounded-full shadow-sm z-10 animate-in zoom-in">
+                {novosCount > 99 ? '99+' : novosCount}
+              </span>
+            )}
+          </button>
+        ))}
       </div>
 
       <div className="flex flex-col gap-3">
