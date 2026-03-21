@@ -51,9 +51,9 @@ export default function RootLayout({
           {children}
         </main>
 
-        <footer className="w-full py-6 mt-auto text-center border-t border-border/40">
-          <p className="text-[11px] font-medium text-muted-foreground/60 tracking-wider">
-            DESENVOLVIDO POR <span className="text-primary/70 font-semibold">SANZONY TECH™</span> &copy; {new Date().getFullYear()}
+        <footer className="w-full py-6 mt-12 text-center border-t border-slate-200 dark:border-slate-800">
+          <p className="text-[11px] font-medium text-slate-500 tracking-wider">
+            DESENVOLVIDO POR <span className="text-blue-600 font-semibold">SANZONY TECH™</span> &copy; {new Date().getFullYear()}
           </p>
         </footer>
 
