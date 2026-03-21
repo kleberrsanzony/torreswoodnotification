@@ -29,7 +29,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className={`${inter.className} min-h-screen flex flex-col`}>
-        <header className="sticky top-0 z-50 shadow-sm border-b" style={{ backgroundColor: 'rgb(248 250 252 / 0.95)', backdropFilter: 'blur(12px)' }}>
+        <header className="bg-white/95 backdrop-blur-md border-b border-border sticky top-0 z-50">
           <div className="max-w-md mx-auto px-4 h-16 flex items-center justify-between">
             <h1 className="font-bold text-lg tracking-tight flex items-center gap-2">
               <Hammer className="w-5 h-5 text-primary" />
