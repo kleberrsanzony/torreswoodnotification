@@ -22,7 +22,7 @@ export default function Home() {
   if (vendedor) headerParts.push(`Vendedor: ${vendedor}`);
   if (cliente) headerParts.push(`Cliente: ${cliente}`);
   if (nota) headerParts.push(`Nota: ${nota}`);
-  const headerText = headerParts.length > 0 ? `[${headerParts.join(" | ")}]` : "";
+  const headerText = headerParts.length > 0 ? headerParts.join(" | ") : "";
 
   const formattedMessage = `${headerText ? headerText + "\n" : ""}${quantity || "[qnt]"} ${product || "[produto]"} de ${length || "[medida]"} metros — vendido`;
 
