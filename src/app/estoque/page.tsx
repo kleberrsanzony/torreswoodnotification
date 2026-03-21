@@ -22,6 +22,7 @@ type Sale = {
 export default function Estoque() {
   const [sales, setSales] = useState<Sale[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [isRegistering, setIsRegistering] = useState(false);
   const [filter, setFilter] = useState<"novo" | "visualizado" | "separando" | "separado" | "entregue_ou_retirado" | "todos">("novo");
@@ -39,6 +40,10 @@ export default function Estoque() {
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     // Initial fetch
@@ -349,10 +354,16 @@ export default function Estoque() {
           <h2 className="text-2xl font-bold tracking-tight">Estoque</h2>
           <button
             onClick={() => setSoundEnabled(!soundEnabled)}
-            className={`p-2 rounded-full transition-colors ${soundEnabled ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}
-            title={soundEnabled ? "Som ativado" : "Som desativado"}
+            className={`p-2 rounded-full transition-all hover:bg-muted/80 active:scale-90 ${mounted && soundEnabled ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}
+            title={mounted && soundEnabled ? "Som ativado" : "Som desativado"}
           >
-            {soundEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
+            {!mounted ? (
+              <VolumeX className="h-5 w-5" />
+            ) : soundEnabled ? (
+              <Volume2 className="h-5 w-5" />
+            ) : (
+              <VolumeX className="h-5 w-5" />
+            )}
           </button>
         </div>
 
@@ -361,7 +372,7 @@ export default function Estoque() {
           <button
             onClick={handleExportPDF}
             disabled={isExporting}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-semibold shadow-sm hover:bg-primary/90 disabled:opacity-50 transition-colors whitespace-nowrap"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-semibold shadow-sm hover:bg-primary/90 active:scale-95 disabled:opacity-50 transition-all whitespace-nowrap"
             title="Exportar relatório de hoje em PDF"
           >
             <FileDown className="h-4 w-4 shrink-0" />
@@ -370,7 +381,7 @@ export default function Estoque() {
           <button
             onClick={handleExportYesterdayPDF}
             disabled={isExportingYesterday}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-secondary text-secondary-foreground text-xs font-semibold shadow-sm hover:bg-secondary/80 disabled:opacity-50 transition-colors whitespace-nowrap"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-secondary text-secondary-foreground text-xs font-semibold shadow-sm hover:bg-secondary/80 active:scale-95 disabled:opacity-50 transition-all whitespace-nowrap"
             title="Exportar relatório de ontem em PDF"
           >
             <FileDown className="h-4 w-4 shrink-0" />
@@ -378,7 +389,7 @@ export default function Estoque() {
           </button>
           <button
             onClick={() => selectMode ? exitSelectMode() : setSelectMode(true)}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold shadow-sm transition-colors whitespace-nowrap ${
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold shadow-sm transition-all whitespace-nowrap active:scale-95 ${
               selectMode
                 ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
                 : 'bg-muted text-muted-foreground hover:bg-muted/80'
@@ -394,14 +405,14 @@ export default function Estoque() {
            <button
              onClick={handleRegisterDevice}
              disabled={isRegistering}
-             className="flex items-center justify-center gap-2 h-10 w-full rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 text-sm font-medium transition-colors"
+             className="flex items-center justify-center gap-2 h-10 w-full rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 active:scale-95 text-sm font-medium transition-all"
            >
              <BellRing className="w-4 h-4" />
              {isRegistering ? "Ativando..." : "Receber Notificações"}
            </button>
            <button
              onClick={handleTestNotification}
-             className="flex items-center justify-center gap-2 h-10 w-full rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 text-sm font-medium transition-colors"
+             className="flex items-center justify-center gap-2 h-10 w-full rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 active:scale-95 text-sm font-medium transition-all"
            >
              <Bell className="w-4 h-4" />
              Testar Notificação
@@ -414,10 +425,10 @@ export default function Estoque() {
           <button
             key={statusTab.value}
             onClick={() => { setFilter(statusTab.value as any); setCurrentPage(1); }}
-            className={`relative flex-1 min-w-max flex items-center justify-center h-[42px] px-3 text-[13px] sm:text-sm font-semibold rounded-xl transition-all border ${
+            className={`relative flex-1 min-w-max flex items-center justify-center h-[42px] px-3 text-[13px] sm:text-sm font-semibold rounded-xl transition-all border active:scale-95 ${
               filter === statusTab.value
                 ? "bg-card shadow-sm border-border text-foreground ring-1 ring-border"
-                : "bg-muted/50 border-transparent text-muted-foreground hover:bg-muted"
+                : "bg-muted/50 border-transparent text-muted-foreground hover:bg-muted hover:border-border/50"
             }`}
           >
             <span>{statusTab.label}</span>
@@ -574,10 +585,10 @@ export default function Estoque() {
                   <div className="flex items-center gap-1 mt-1 justify-end">
                     {editingId !== sale.id && (
                       <>
-                        <button onClick={() => startEditing(sale)} className="text-muted-foreground hover:text-blue-500 transition-colors p-1.5 rounded-md hover:bg-muted" title="Editar Venda">
+                        <button onClick={() => startEditing(sale)} className="text-muted-foreground hover:text-blue-500 transition-all p-1.5 rounded-md hover:bg-muted active:scale-90" title="Editar Venda">
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
-                        <button onClick={() => handleDelete(sale.id)} className="text-muted-foreground hover:text-red-500 transition-colors p-1.5 rounded-md hover:bg-muted" title="Excluir Venda Permanentemente">
+                        <button onClick={() => handleDelete(sale.id)} className="text-muted-foreground hover:text-red-500 transition-all p-1.5 rounded-md hover:bg-muted active:scale-90" title="Excluir Venda Permanentemente">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </>
@@ -593,7 +604,7 @@ export default function Estoque() {
                 {sale.status === 'novo' && (
                   <button
                     onClick={() => handleUpdateStatus(sale.id, 'visualizado')}
-                    className="flex-1 min-w-[120px] flex items-center justify-center gap-2 bg-amber-500/10 text-amber-600 dark:text-amber-500 h-10 rounded-lg text-sm font-semibold transition-colors hover:bg-amber-500/20"
+                    className="flex-1 min-w-[120px] flex items-center justify-center gap-2 bg-amber-500/10 text-amber-600 dark:text-amber-500 h-10 rounded-lg text-sm font-semibold transition-all hover:bg-amber-500/20 active:scale-[0.98]"
                   >
                     Visualizado
                     <ArrowRight className="w-4 h-4" />
@@ -603,7 +614,7 @@ export default function Estoque() {
                 {sale.status === 'visualizado' && (
                   <button
                     onClick={() => handleUpdateStatus(sale.id, 'separando')}
-                    className="flex-1 min-w-[120px] flex items-center justify-center gap-2 bg-blue-500/10 text-blue-600 dark:text-blue-500 h-10 rounded-lg text-sm font-semibold transition-colors hover:bg-blue-500/20"
+                    className="flex-1 min-w-[120px] flex items-center justify-center gap-2 bg-blue-500/10 text-blue-600 dark:text-blue-500 h-10 rounded-lg text-sm font-semibold transition-all hover:bg-blue-500/20 active:scale-[0.98]"
                   >
                     Separando
                     <ArrowRight className="w-4 h-4" />
@@ -613,7 +624,7 @@ export default function Estoque() {
                 {sale.status === 'separando' && (
                   <button
                     onClick={() => handleUpdateStatus(sale.id, 'separado')}
-                    className="flex-1 min-w-[120px] flex items-center justify-center gap-2 bg-emerald-500 text-white h-10 rounded-lg text-sm font-semibold transition-colors hover:bg-emerald-600"
+                    className="flex-1 min-w-[120px] flex items-center justify-center gap-2 bg-emerald-500 text-white h-10 rounded-lg text-sm font-semibold transition-all hover:bg-emerald-600 active:scale-[0.98]"
                   >
                     Separado
                     <ShieldCheck className="w-4 h-4" />
@@ -623,7 +634,7 @@ export default function Estoque() {
                 {sale.status === 'separado' && (
                   <button
                     onClick={() => handleUpdateStatus(sale.id, 'entregue_ou_retirado')}
-                    className="flex-1 min-w-[120px] flex items-center justify-center gap-2 bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800 h-10 rounded-lg text-sm font-semibold transition-colors hover:opacity-90"
+                    className="flex-1 min-w-[120px] flex items-center justify-center gap-2 bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800 h-10 rounded-lg text-sm font-semibold transition-all hover:opacity-90 active:scale-[0.98]"
                   >
                     Entregue / Retirado
                     <Check className="w-4 h-4" />
@@ -639,7 +650,7 @@ export default function Estoque() {
               </div>
             </div>
             </div>
-            ))}
+          ))}
           </>
         )}
       </div>
@@ -663,7 +674,7 @@ export default function Estoque() {
           <button
             onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
-            className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-xl border border-input bg-card hover:bg-muted transition-colors disabled:opacity-40 disabled:pointer-events-none shadow-sm"
+            className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-xl border border-input bg-card hover:bg-muted transition-all active:scale-95 disabled:opacity-40 disabled:pointer-events-none shadow-sm"
           >
             Próxima
             <ArrowRight className="w-4 h-4" />
