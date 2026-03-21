@@ -47,15 +47,14 @@ export default function RootLayout({
           </div>
         </header>
 
-        <main className="max-w-md w-full mx-auto p-4 flex flex-col flex-grow">
+        <main className="max-w-md w-full mx-auto p-4 flex flex-col flex-grow pb-0">
           {children}
+          <footer className="w-full pt-8 pb-6 mt-8 text-center border-t border-slate-200">
+            <p className="text-[11px] font-medium text-slate-400 tracking-wider">
+              DESENVOLVIDO POR <span className="text-blue-600 font-semibold">SANZONY TECH™</span> &copy; {new Date().getFullYear()}
+            </p>
+          </footer>
         </main>
-
-        <footer className="w-full py-5 text-center border-t border-slate-200" style={{ marginTop: 'auto' }}>
-          <p className="text-[11px] font-medium text-slate-400 tracking-wider">
-            DESENVOLVIDO POR <span className="text-blue-600 font-semibold">SANZONY TECH™</span> &copy; {new Date().getFullYear()}
-          </p>
-        </footer>
 
         <Toaster position="top-center" richColors />
       </body>
