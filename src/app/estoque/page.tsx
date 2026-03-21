@@ -6,7 +6,7 @@ import { requestForToken, onMessageListener } from "@/lib/firebase";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
-import { BellRing, Check, Bell, VolumeX, Volume2, Search, ArrowRight, ShieldCheck } from "lucide-react";
+import { BellRing, Check, Bell, VolumeX, Volume2, Search, ArrowRight, ShieldCheck, X } from "lucide-react";
 
 type Sale = {
   id: string;
@@ -24,6 +24,7 @@ export default function Estoque() {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [isRegistering, setIsRegistering] = useState(false);
   const [filter, setFilter] = useState<"novo" | "visualizado" | "separando" | "separado" | "entregue_ou_retirado" | "todos">("novo");
+  const [searchQuery, setSearchQuery] = useState("");
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -144,7 +145,12 @@ export default function Estoque() {
     }
   };
 
-  const filteredSales = sales.filter(s => filter === "todos" || s.status === filter);
+  const filteredSales = sales.filter(s => {
+    const matchesFilter = filter === "todos" || s.status === filter;
+    const matchesSearch = s.message.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
+
   const novosCount = sales.filter(s => s.status === "novo").length;
 
   const STATUSES = [
@@ -216,6 +222,26 @@ export default function Estoque() {
         ))}
       </div>
 
+      {/* Search Bar */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <input 
+          type="text"
+          placeholder="Buscar por vendedor, cliente, nota, produto..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full h-11 pl-10 pr-10 rounded-xl border border-input bg-card text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
+        />
+        {searchQuery && (
+          <button 
+            onClick={() => setSearchQuery("")}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+
       <div className="flex flex-col gap-3">
         {isLoading ? (
           <div className="flex flex-col gap-3">
@@ -241,7 +267,7 @@ export default function Estoque() {
               }`}
             >
               <div className="flex items-start justify-between gap-4 mb-2">
-                <p className="font-semibold text-[15px] leading-tight text-foreground">
+                <p className="font-semibold text-[15px] leading-relaxed text-foreground whitespace-pre-line">
                   {sale.message}
                 </p>
                 <div className="flex flex-col items-end gap-1 shrink-0">

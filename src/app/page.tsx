@@ -9,9 +9,22 @@ export default function Home() {
   const [product, setProduct] = useState("");
   const [length, setLength] = useState("");
   const [quantity, setQuantity] = useState("");
+  
+  // New Fields
+  const [vendedor, setVendedor] = useState("");
+  const [cliente, setCliente] = useState("");
+  const [nota, setNota] = useState("");
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const formattedMessage = `${quantity || "[qnt]"} ${product || "[produto]"} de ${length || "[medida]"} metros — vendido`;
+  // Formatar cabeçalho opcional
+  const headerParts = [];
+  if (vendedor) headerParts.push(`Vendedor: ${vendedor}`);
+  if (cliente) headerParts.push(`Cliente: ${cliente}`);
+  if (nota) headerParts.push(`Nota: ${nota}`);
+  const headerText = headerParts.length > 0 ? `[${headerParts.join(" | ")}]` : "";
+
+  const formattedMessage = `${headerText ? headerText + "\n" : ""}${quantity || "[qnt]"} ${product || "[produto]"} de ${length || "[medida]"} metros — vendido`;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,7 +34,7 @@ export default function Home() {
     }
 
     setIsSubmitting(true);
-    const finalMessage = `${quantity} ${product} de ${length} metros — vendido`;
+    const finalMessage = `${headerText ? headerText + "\n" : ""}${quantity} ${product} de ${length} metros — vendido`;
 
     try {
       // 1. Insert into Supabase
@@ -51,10 +64,12 @@ export default function Home() {
 
       toast.success("Venda enviada para o estoque com sucesso!");
       
-      // Reset form
+      // Reset form (keeping vendedor as it usually remains the same for the session)
       setProduct("");
       setLength("");
       setQuantity("");
+      setCliente("");
+      setNota("");
     } catch (error: any) {
       console.error(error);
       toast.error("Erro ao registrar venda: " + (error.message || "Erro desconhecido"));
@@ -71,6 +86,47 @@ export default function Home() {
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        
+        {/* NEW FIELDS ROW */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-b border-border pb-5 mb-1">
+          <div className="flex flex-col gap-2">
+            <label htmlFor="vendedor" className="text-sm font-medium">Vendedor</label>
+            <input
+              id="vendedor"
+              type="text"
+              placeholder="Seu nome"
+              className="flex h-12 w-full rounded-xl border border-input bg-card px-4 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              value={vendedor}
+              onChange={(e) => setVendedor(e.target.value)}
+              disabled={isSubmitting}
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <label htmlFor="cliente" className="text-sm font-medium">Cliente</label>
+            <input
+              id="cliente"
+              type="text"
+              placeholder="Nome do cliente"
+              className="flex h-12 w-full rounded-xl border border-input bg-card px-4 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              value={cliente}
+              onChange={(e) => setCliente(e.target.value)}
+              disabled={isSubmitting}
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <label htmlFor="nota" className="text-sm font-medium">Nº Nota/Pedido</label>
+            <input
+              id="nota"
+              type="text"
+              placeholder="Ex: 12345"
+              className="flex h-12 w-full rounded-xl border border-input bg-card px-4 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              value={nota}
+              onChange={(e) => setNota(e.target.value)}
+              disabled={isSubmitting}
+            />
+          </div>
+        </div>
+
         <div className="flex flex-col gap-2">
           <label htmlFor="product" className="text-sm font-medium">Produto</label>
           <input
@@ -117,8 +173,8 @@ export default function Home() {
         </div>
 
         <div className="mt-2 rounded-xl bg-muted p-4 border border-border">
-          <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider font-semibold">Resumo da mensagem</p>
-          <p className="font-medium text-foreground">{formattedMessage}</p>
+          <p className="text-xs text-muted-foreground mb-2 uppercase tracking-wider font-semibold">Resumo da mensagem</p>
+          <p className="font-medium text-foreground whitespace-pre-line leading-relaxed">{formattedMessage}</p>
         </div>
 
         <button
