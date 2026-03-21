@@ -354,6 +354,33 @@ export default function Estoque() {
         )}
       </div>
 
+      {/* Pagination Controls (Top) */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-xl border border-input bg-card hover:bg-muted transition-colors disabled:opacity-40 disabled:pointer-events-none shadow-sm"
+          >
+            <ArrowRight className="w-4 h-4 rotate-180" />
+            Anterior
+          </button>
+
+          <span className="text-sm text-muted-foreground font-medium">
+            Página <span className="text-foreground font-bold">{currentPage}</span> de <span className="text-foreground font-bold">{totalPages}</span>
+          </span>
+
+          <button
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-xl border border-input bg-card hover:bg-muted transition-colors disabled:opacity-40 disabled:pointer-events-none shadow-sm"
+          >
+            Próxima
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       <div className="flex flex-col gap-3">
         {isLoading ? (
           <div className="flex flex-col gap-3">
