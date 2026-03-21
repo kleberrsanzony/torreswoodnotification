@@ -23,7 +23,7 @@ export default function Estoque() {
   const [isLoading, setIsLoading] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [isRegistering, setIsRegistering] = useState(false);
-  const [filter, setFilter] = useState<"novo" | "todos">("novo");
+  const [filter, setFilter] = useState<"novo" | "visualizado" | "separando" | "separado" | "entregue_ou_retirado" | "todos">("novo");
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -147,6 +147,15 @@ export default function Estoque() {
   const filteredSales = sales.filter(s => filter === "todos" || s.status === filter);
   const novosCount = sales.filter(s => s.status === "novo").length;
 
+  const STATUSES = [
+    { value: "novo", label: "Novos" },
+    { value: "visualizado", label: "Vistos" },
+    { value: "separando", label: "Separando" },
+    { value: "separado", label: "Separados" },
+    { value: "entregue_ou_retirado", label: "Entregues" },
+    { value: "todos", label: "Todos" },
+  ] as const;
+
   return (
     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10">
       {/* Hidden Audio Element for Notification Sound */}
@@ -186,24 +195,23 @@ export default function Estoque() {
         </div>
       </div>
 
-      <div className="flex items-center bg-muted p-1 rounded-xl">
-        <button
-          onClick={() => setFilter("novo")}
-          className={`flex-1 flex items-center justify-center h-10 text-sm font-medium rounded-lg transition-all ${filter === "novo" ? "bg-card shadow text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-        >
-          Novos 
-          {novosCount > 0 && (
-            <span className="ml-2 inline-flex items-center justify-center bg-destructive text-destructive-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
-              {novosCount}
-            </span>
-          )}
-        </button>
-        <button
-          onClick={() => setFilter("todos")}
-          className={`flex-1 flex items-center justify-center h-10 text-sm font-medium rounded-lg transition-all ${filter === "todos" ? "bg-card shadow text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-        >
-          Todos
-        </button>
+      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+        <div className="flex items-center bg-muted p-1 rounded-xl w-max">
+          {STATUSES.map((statusTab) => (
+            <button
+              key={statusTab.value}
+              onClick={() => setFilter(statusTab.value as any)}
+              className={`flex items-center justify-center px-4 h-10 text-sm font-medium rounded-lg transition-all ${filter === statusTab.value ? "bg-card shadow text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              {statusTab.label}
+              {statusTab.value === "novo" && novosCount > 0 && (
+                <span className="ml-2 inline-flex items-center justify-center bg-destructive text-destructive-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  {novosCount}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="flex flex-col gap-3">
@@ -222,19 +230,27 @@ export default function Estoque() {
           filteredSales.map((sale) => (
             <div 
               key={sale.id} 
-              className={`p-4 rounded-xl border transition-all ${sale.status === 'novo' ? 'bg-card border-primary/20 shadow-sm border-l-4 border-l-primary' : sale.status === 'visto' ? 'bg-muted/50 border-border' : 'bg-muted/30 border-dashed border-border opacity-75'}`}
+              className={`p-4 rounded-xl border transition-all ${
+                sale.status === 'novo' ? 'bg-card border-primary/20 shadow-sm border-l-4 border-l-primary' : 
+                sale.status === 'visualizado' ? 'bg-amber-500/5 border-amber-500/20 border-l-4 border-l-amber-500' : 
+                sale.status === 'separando' ? 'bg-blue-500/5 border-blue-500/20 border-l-4 border-l-blue-500' : 
+                sale.status === 'separado' ? 'bg-emerald-500/5 border-emerald-500/20 border-l-4 border-l-emerald-500' : 
+                'bg-muted/30 border-dashed border-border opacity-75'
+              }`}
             >
               <div className="flex items-start justify-between gap-4 mb-2">
                 <p className="font-semibold text-[15px] leading-tight text-foreground">
                   {sale.message}
                 </p>
                 <div className="flex flex-col items-end gap-1 shrink-0">
-                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
                     sale.status === 'novo' ? 'bg-primary/10 text-primary' :
-                    sale.status === 'visto' ? 'bg-amber-500/10 text-amber-500' :
-                    'bg-emerald-500/10 text-emerald-500'
+                    sale.status === 'visualizado' ? 'bg-amber-500/10 text-amber-500' :
+                    sale.status === 'separando' ? 'bg-blue-500/10 text-blue-500' :
+                    sale.status === 'separado' ? 'bg-emerald-500/10 text-emerald-500' :
+                    'bg-slate-500/10 text-slate-500'
                   }`}>
-                    {sale.status === 'novo' ? 'NOVO' : sale.status === 'visto' ? 'EM ESPERA' : 'SEPARADO'}
+                    {sale.status === 'entregue_ou_retirado' ? 'ENTREGUE/RETIR.' : sale.status}
                   </span>
                   <span className="text-[11px] font-medium text-muted-foreground">
                     {format(new Date(sale.created_at), "HH:mm", { locale: ptBR })}
@@ -242,21 +258,31 @@ export default function Estoque() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 mt-4">
+              <div className="flex flex-wrap items-center gap-2 mt-4">
                 {sale.status === 'novo' && (
                   <button
-                    onClick={() => handleUpdateStatus(sale.id, 'visto')}
-                    className="flex-1 flex items-center justify-center gap-2 bg-primary/10 text-primary h-10 rounded-lg text-sm font-semibold transition-colors hover:bg-primary/20"
+                    onClick={() => handleUpdateStatus(sale.id, 'visualizado')}
+                    className="flex-1 min-w-[120px] flex items-center justify-center gap-2 bg-amber-500/10 text-amber-600 dark:text-amber-500 h-10 rounded-lg text-sm font-semibold transition-colors hover:bg-amber-500/20"
                   >
-                    Visto
+                    Visualizado
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 )}
                 
-                {(sale.status === 'novo' || sale.status === 'visto') && (
+                {sale.status === 'visualizado' && (
+                  <button
+                    onClick={() => handleUpdateStatus(sale.id, 'separando')}
+                    className="flex-1 min-w-[120px] flex items-center justify-center gap-2 bg-blue-500/10 text-blue-600 dark:text-blue-500 h-10 rounded-lg text-sm font-semibold transition-colors hover:bg-blue-500/20"
+                  >
+                    Separando
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                )}
+
+                {sale.status === 'separando' && (
                   <button
                     onClick={() => handleUpdateStatus(sale.id, 'separado')}
-                    className="flex-1 flex items-center justify-center gap-2 bg-primary text-primary-foreground h-10 rounded-lg text-sm font-semibold transition-colors hover:bg-primary/90"
+                    className="flex-1 min-w-[120px] flex items-center justify-center gap-2 bg-emerald-500 text-white h-10 rounded-lg text-sm font-semibold transition-colors hover:bg-emerald-600"
                   >
                     Separado
                     <ShieldCheck className="w-4 h-4" />
@@ -264,9 +290,19 @@ export default function Estoque() {
                 )}
 
                 {sale.status === 'separado' && (
-                  <div className="flex-1 flex items-center justify-center gap-2 bg-emerald-500/10 text-emerald-500 h-10 rounded-lg text-sm font-semibold pointer-events-none">
+                  <button
+                    onClick={() => handleUpdateStatus(sale.id, 'entregue_ou_retirado')}
+                    className="flex-1 min-w-[120px] flex items-center justify-center gap-2 bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800 h-10 rounded-lg text-sm font-semibold transition-colors hover:opacity-90"
+                  >
+                    Entregue / Retirado
                     <Check className="w-4 h-4" />
-                    Item Finalizado
+                  </button>
+                )}
+
+                {sale.status === 'entregue_ou_retirado' && (
+                  <div className="flex-1 flex items-center justify-center gap-2 bg-muted text-muted-foreground h-10 rounded-lg text-sm font-semibold pointer-events-none">
+                    <Check className="w-4 h-4" />
+                    Pedido Finalizado
                   </div>
                 )}
               </div>
