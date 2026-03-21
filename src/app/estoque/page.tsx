@@ -32,6 +32,7 @@ export default function Estoque() {
   const [editMessage, setEditMessage] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [isExportingYesterday, setIsExportingYesterday] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -207,6 +208,38 @@ export default function Estoque() {
     }
   };
 
+  const handleExportYesterdayPDF = async () => {
+    setIsExportingYesterday(true);
+    try {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const startOfDay = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate()).toISOString();
+      const endOfDay = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate(), 23, 59, 59).toISOString();
+
+      const { data, error } = await supabase
+        .from('sales')
+        .select('*')
+        .gte('created_at', startOfDay)
+        .lte('created_at', endOfDay)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        toast.warning('Nenhuma venda registrada ontem para exportar.');
+        return;
+      }
+
+      generateDailyReport(data, yesterday);
+      toast.success(`PDF de ontem gerado com ${data.length} venda(s)!`);
+    } catch (e) {
+      console.error(e);
+      toast.error('Erro ao gerar o relatório PDF.');
+    } finally {
+      setIsExportingYesterday(false);
+    }
+  };
+
   const startEditing = (sale: Sale) => {
     setEditingId(sale.id);
     setEditMessage(sale.message);
@@ -279,10 +312,19 @@ export default function Estoque() {
               onClick={handleExportPDF}
               disabled={isExporting}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold shadow-sm hover:bg-primary/90 disabled:opacity-50 transition-colors"
-              title="Exportar relatório diário em PDF"
+              title="Exportar relatório de hoje em PDF"
             >
               <FileDown className="h-4 w-4" />
               {isExporting ? 'Gerando...' : 'PDF Hoje'}
+            </button>
+            <button
+              onClick={handleExportYesterdayPDF}
+              disabled={isExportingYesterday}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary text-secondary-foreground text-xs font-semibold shadow-sm hover:bg-secondary/80 disabled:opacity-50 transition-colors"
+              title="Exportar relatório de ontem em PDF"
+            >
+              <FileDown className="h-4 w-4" />
+              {isExportingYesterday ? 'Gerando...' : 'PDF Ontem'}
             </button>
             <button
               onClick={() => setSoundEnabled(!soundEnabled)}
