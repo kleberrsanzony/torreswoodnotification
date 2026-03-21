@@ -120,7 +120,7 @@ export async function generateDailyReport(sales: Sale[], date: Date = new Date()
       fillColor: [248, 250, 252] as [number, number, number],
     },
     columnStyles: {
-      0: { cellWidth: 8, halign: 'center' },
+      0: { cellWidth: 12, halign: 'center' },
       1: { cellWidth: 28 },
       2: { cellWidth: 28 },
       3: { cellWidth: 18 },
