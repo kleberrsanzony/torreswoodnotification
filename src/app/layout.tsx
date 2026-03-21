@@ -4,6 +4,7 @@ import "./globals.css";
 import Link from "next/link";
 import { Hammer, Package } from "lucide-react";
 import { Toaster } from "sonner";
+import PWAManager from "@/components/PWAManager";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -57,6 +58,7 @@ export default function RootLayout({
         </main>
 
         <Toaster position="top-center" richColors />
+        <PWAManager />
       </body>
     </html>
   );

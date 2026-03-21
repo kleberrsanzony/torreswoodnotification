@@ -7,6 +7,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { BellRing, Check, Bell, VolumeX, Volume2, Search, ArrowRight, ShieldCheck, X, Pencil, Trash2, FileDown, CheckSquare } from "lucide-react";
+import { registerDeviceForNotifications } from "@/lib/notifications";
 import { generateDailyReport } from "@/lib/pdfReport";
 
 type Sale = {
@@ -126,47 +127,11 @@ export default function Estoque() {
 
   const handleRegisterDevice = async () => {
     setIsRegistering(true);
-    try {
-      const ensureServiceWorkerAndToken = async () => {
-        const token = await requestForToken();
-        if (token) {
-          const { error } = await supabase.from("device_tokens").upsert(
-            { fcm_token: token, role: "estoque", active: true },
-            { onConflict: 'fcm_token' }
-          );
-          if (error) throw error;
-          toast.success("Dispositivo ativado para receber notificações!");
-        } else {
-          toast.warning("Não foi possível obter o token de notificação.");
-        }
-      };
-
-      const requestPermission = async () => {
-        try {
-          if (!('Notification' in window)) {
-            toast.error("Seu navegador não suporta notificações.");
-            return;
-          }
-
-          const permission = await Notification.requestPermission();
-          if (permission === 'granted') {
-            toast.success("Permissão concedida! Registrando dispositivo...");
-            await ensureServiceWorkerAndToken();
-          } else {
-            toast.error("Permissão de notificação negada.");
-          }
-        } catch (error) {
-          console.error(error);
-          toast.error("Erro ao solicitar permissão.");
-        }
-      };
-      await requestPermission();
-    } catch (e) {
-      console.error(e);
-      toast.error("Erro ao registrar dispositivo.");
-    } finally {
-      setIsRegistering(false);
+    const success = await registerDeviceForNotifications("estoque");
+    if (success) {
+      toast.success("Dispositivo ativado para receber notificações!");
     }
+    setIsRegistering(false);
   };
 
   const handleDelete = (id: string) => {
