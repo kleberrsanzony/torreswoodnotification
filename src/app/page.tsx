@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { SendHorizontal, Loader2 } from "lucide-react";
+import { SendHorizontal, Loader2, ChevronDown, Check } from "lucide-react";
 
 export default function Home() {
   const [product, setProduct] = useState("");
@@ -16,6 +16,9 @@ export default function Home() {
   const [nota, setNota] = useState("");
   
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isVendedorOpen, setIsVendedorOpen] = useState(false);
+
+  const vendedores = ['Kleber', 'Jackson', 'Deidiviane', 'Márcio', 'Mauro', 'Mayara'];
 
   // Formatar cabeçalho opcional
   const headerParts = [];
@@ -91,21 +94,46 @@ export default function Home() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-b border-border pb-5 mb-1">
           <div className="flex flex-col gap-2">
             <label htmlFor="vendedor" className="text-sm font-medium">Vendedor</label>
-            <select
-              id="vendedor"
-              value={vendedor}
-              onChange={(e) => setVendedor(e.target.value)}
-              disabled={isSubmitting}
-              className="flex h-12 w-full rounded-xl border border-input bg-card px-4 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 cursor-pointer"
-            >
-              <option value="" disabled>Selecione um vendedor</option>
-              <option value="Kleber">Kleber</option>
-              <option value="Jackson">Jackson</option>
-              <option value="Deidiviane">Deidiviane</option>
-              <option value="Márcio">Márcio</option>
-              <option value="Mauro">Mauro</option>
-              <option value="Mayara">Mayara</option>
-            </select>
+            <div className="relative">
+              <button
+                id="vendedor"
+                type="button"
+                onClick={() => setIsVendedorOpen(!isVendedorOpen)}
+                disabled={isSubmitting}
+                className={`flex h-12 w-full items-center justify-between rounded-xl border border-input bg-card px-4 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 ${!vendedor ? 'text-muted-foreground' : 'text-foreground'}`}
+              >
+                {vendedor || "Selecione um vendedor"}
+                <ChevronDown className={`w-4 h-4 opacity-50 transition-transform ${isVendedorOpen ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {isVendedorOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setIsVendedorOpen(false)}></div>
+                  <div className="absolute z-50 top-[calc(100%+8px)] left-0 w-full bg-card border border-border rounded-xl shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-2">
+                    <div className="max-h-[200px] overflow-y-auto p-1.5 flex flex-col gap-1">
+                      {vendedores.map((v) => (
+                        <button
+                          key={v}
+                          type="button"
+                          onClick={() => {
+                            setVendedor(v);
+                            setIsVendedorOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-between px-3 py-2.5 text-sm rounded-lg transition-colors ${
+                            vendedor === v 
+                              ? 'bg-primary/10 text-primary font-medium' 
+                              : 'text-foreground hover:bg-muted'
+                          }`}
+                        >
+                          {v}
+                          {vendedor === v && <Check className="w-4 h-4" />}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
           <div className="flex flex-col gap-2">
             <label htmlFor="cliente" className="text-sm font-medium">Cliente</label>
