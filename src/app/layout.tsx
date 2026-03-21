@@ -51,6 +51,12 @@ export default function RootLayout({
           {children}
         </main>
 
+        <footer className="w-full py-6 mt-auto text-center border-t border-border/40">
+          <p className="text-[11px] font-medium text-muted-foreground/60 tracking-wider">
+            DESENVOLVIDO POR <span className="text-primary/70 font-semibold">SANZONY TECH™</span> &copy; {new Date().getFullYear()}
+          </p>
+        </footer>
+
         <Toaster position="top-center" richColors />
       </body>
     </html>
