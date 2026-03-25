@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { SendHorizontal, Loader2, ChevronDown, Check, Plus, Trash2, Pencil, X } from "lucide-react";
+import { SendHorizontal, Loader2, ChevronDown, Check, Plus, Trash2, Pencil, X, LogOut, ShieldCheck, User as UserIcon } from "lucide-react";
 
 interface SaleItem {
   product: string;
@@ -28,8 +29,28 @@ export default function Home() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isVendedorOpen, setIsVendedorOpen] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorModalMsg, setErrorModalMsg] = useState("");
 
-  const vendedores = ['Kleber', 'Jackson', 'Deidiviane', 'Márcio', 'Mauro', 'Mayara'];
+  const router = useRouter();
+
+  useEffect(() => {
+    const userId = sessionStorage.getItem("user_id");
+    const userName = sessionStorage.getItem("user_name");
+    
+    if (!userId || !userName) {
+      router.push("/login");
+    } else {
+      setVendedor(userName);
+      setIsCheckingAuth(false);
+    }
+  }, [router]);
+
+  const handleLogout = () => {
+    sessionStorage.clear();
+    router.push("/login");
+  };
 
   const handleAddItem = () => {
     if (!product || !length || !quantity) {
@@ -126,17 +147,50 @@ export default function Home() {
     const finalMessage = buildMessage(finalItems);
 
     try {
-      // 1. Insert into Supabase
-      // We summarize the main fields for the DB based on the first item or a general description
-      const { error: dbError } = await supabase.from("sales").insert({
+      // 1. Check for Duplicate Nota
+      if (nota.trim()) {
+        const { data: existingNota } = await supabase
+          .from("sales")
+          .select("id")
+          .eq("nota", nota.trim())
+          .maybeSingle();
+        
+        if (existingNota) {
+          setErrorModalMsg(`A Nota #${nota} já foi registrada anteriormente por outro vendedor ou em outra venda!`);
+          setShowErrorModal(true);
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      // 2. Insert into Supabase
+      const saleData: any = {
         product: finalItems.length > 1 ? `Venda com ${finalItems.length} itens` : finalItems[0].product,
         length_meters: finalItems.length === 1 ? parseFloat(finalItems[0].length) : 0,
         quantity: finalItems.length === 1 ? parseInt(finalItems[0].quantity, 10) : finalItems.length,
         message: finalMessage,
         status: "novo",
-      });
+        seller_id: sessionStorage.getItem("user_id"),
+        nota: nota.trim() || null,
+      };
 
-      if (dbError) throw dbError;
+      let { error: dbError } = await supabase.from("sales").insert(saleData);
+
+      // Fallback if 'nota' column doesn't exist yet
+      if (dbError && dbError.message?.includes("nota")) {
+        console.warn("Coluna 'nota' não encontrada. Tentando registrar sem o campo...");
+        delete saleData.nota;
+        const { error: fallbackError } = await supabase.from("sales").insert(saleData);
+        if (fallbackError) throw fallbackError;
+      } else if (dbError && (dbError.message?.includes("seller_id") || dbError.code === "PGRST204")) {
+        // Fallback if seller_id column not yet in cache
+        console.warn("Aguardando sincronização do banco... Registrando sem vínculo temporariamente.");
+        delete saleData.seller_id;
+        const { error: fallbackError } = await supabase.from("sales").insert(saleData);
+        if (fallbackError) throw fallbackError;
+      } else if (dbError) {
+        throw dbError;
+      }
 
       // 2. Trigger Push Notification to Estoque
       const res = await fetch("/api/notify", {
@@ -170,56 +224,38 @@ export default function Home() {
     }
   };
 
+  if (isCheckingAuth) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-10 w-10 animate-spin text-primary opacity-50" />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">Nova Venda</h2>
-        <p className="text-muted-foreground">Registre os itens vendidos abaixo.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Nova Venda</h2>
+          <p className="text-muted-foreground">Registre os itens vendidos abaixo.</p>
+        </div>
+        <button 
+          onClick={handleLogout}
+          className="p-2 rounded-xl bg-muted text-muted-foreground hover:text-destructive transition-colors"
+          title="Sair"
+        >
+          <LogOut className="w-5 h-5" />
+        </button>
       </div>
 
       <div className="flex flex-col gap-5">
         {/* HEADER FIELDS ROW */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-b border-border pb-5">
           <div className="flex flex-col gap-2">
-            <label htmlFor="vendedor" className="text-sm font-medium">Vendedor</label>
-            <div className="relative">
-              <button
-                id="vendedor"
-                type="button"
-                onClick={() => setIsVendedorOpen(!isVendedorOpen)}
-                disabled={isSubmitting}
-                className={`flex h-12 w-full items-center justify-between rounded-xl border border-slate-200 bg-white/50 backdrop-blur-sm px-4 py-2 text-sm shadow-sm transition-all duration-300 hover:bg-slate-50 hover:scale-[1.01] hover:shadow-md active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 ${!vendedor ? 'text-slate-500' : 'text-slate-900'}`}
-              >
-                {vendedor || "Selecione Vendedor"}
-                <ChevronDown className={`w-4 h-4 opacity-50 transition-transform ${isVendedorOpen ? 'rotate-180' : ''}`} />
-              </button>
-
-              {isVendedorOpen && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setIsVendedorOpen(false)}></div>
-                  <div className="absolute z-[60] top-[calc(100%+8px)] left-0 w-full bg-white/85 backdrop-blur-3xl border border-slate-200 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.15)] overflow-hidden animate-in fade-in slide-in-from-top-2">
-                    <div className="max-h-[200px] overflow-y-auto p-1.5 flex flex-col gap-1">
-                      {vendedores.map((v) => (
-                        <button
-                          key={v}
-                          type="button"
-                          onClick={() => {
-                            setVendedor(v);
-                            setIsVendedorOpen(false);
-                          }}
-                          className={`w-full flex items-center justify-between px-3 py-2.5 text-sm rounded-lg transition-all duration-200 ${vendedor === v
-                            ? 'bg-primary/10 text-primary font-medium'
-                            : 'text-foreground hover:bg-muted hover:scale-[1.02] hover:pl-4'
-                            }`}
-                        >
-                          {v}
-                          {vendedor === v && <Check className="w-4 h-4" />}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              )}
+            <label className="text-sm font-medium">Vendedor</label>
+            <div className="flex items-center gap-3 h-12 w-full rounded-xl border border-border bg-muted/50 px-4 py-2 text-sm text-foreground font-bold">
+              <UserIcon className="w-4 h-4 text-primary" />
+              {vendedor}
             </div>
           </div>
           <div className="flex flex-col gap-2">
@@ -291,7 +327,7 @@ export default function Home() {
         {/* INPUT FIELDS FOR NEW/EDIT ITEM */}
         <div className={`p-4 rounded-2xl border flex flex-col gap-4 transition-all duration-300 ${
           editingIndex !== null 
-            ? 'bg-blue-50/50 border-blue-200 ring-2 ring-blue-100' 
+            ? 'bg-primary/5 border-primary/20 ring-2 ring-primary/10' 
             : 'bg-muted/30 border-dashed border-border'
         }`}>
           <div className="flex items-center justify-between">
@@ -400,6 +436,28 @@ export default function Home() {
           {isSubmitting ? "Enviando..." : items.length > 0 ? `Enviar Venda (${items.length} itens)` : "Enviar Venda"}
         </button>
       </div>
+      {/* Duplicate Error Modal */}
+      {showErrorModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-background/80 backdrop-blur-sm p-6 animate-in fade-in duration-300">
+          <div className="bg-card w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl border border-border animate-in zoom-in-95 duration-300">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-20 h-20 bg-destructive/10 text-destructive rounded-3xl flex items-center justify-center mb-6 shadow-sm">
+                <X className="w-10 h-10" />
+              </div>
+              <h2 className="text-2xl font-black text-foreground tracking-tight mb-2">Nota Duplicada!</h2>
+              <p className="text-muted-foreground font-medium text-sm leading-relaxed mb-8">
+                {errorModalMsg}
+              </p>
+              <button 
+                onClick={() => setShowErrorModal(false)}
+                className="w-full h-14 bg-primary text-primary-foreground font-black rounded-2xl shadow-lg hover:bg-primary/90 active:scale-95 transition-all"
+              >
+                ENTENDI, VOU CONFERIR
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
